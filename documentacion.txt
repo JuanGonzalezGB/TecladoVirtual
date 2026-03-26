@@ -1,0 +1,113 @@
+DOCUMENTACIÓN COMPLETA DEL PROYECTO
+
+==================== ARCHIVO: main.py ====================
+
+Clase: App
+
+Clase principal que controla toda la aplicación GUI, la interacción con
+los teclados virtuales y el envío de texto a otras ventanas del sistema.
+
+Método: init(self, root) Inicializa la aplicación: - root: ventana
+principal de Tkinter. - Define modo de teclado (mode). - Inicializa
+variables de ventana destino. - Llama a _build().
+
+Método: _build(self) Construye toda la interfaz: - Crea un contenedor
+con scroll global usando Canvas + Scrollbar. - Crea el área de texto
+(Text). - Muestra etiqueta de ventana destino. - Crea frame donde vive
+el teclado. - Inicializa teclado QWERTY. - Crea botones de control: -
+Switch Keyboard - Seleccionar destino - Enviar texto
+
+Método: _switch_keyboard(self) Cambia entre 3 teclados: - 0 → QWERTY - 1
+→ Caracteres - 2 → Numpad
+
+Proceso: 1. Borra teclado actual 2. Incrementa modo 3. Instancia nuevo
+teclado 4. Lo renderiza
+
+Método: _select_target(self) Permite seleccionar ventana destino: -
+Minimiza la app - Espera 1.5 segundos - Llama a _capture_window()
+
+Método: _capture_window(self) Captura ventana activa: - Usa xdotool
+getwindowfocus - Guarda ID de ventana - Obtiene nombre - Actualiza UI -
+Restaura la app
+
+Método: _send_text(self) Envía el texto a otra app: 1. Verifica que
+exista ventana destino 2. Obtiene texto del widget 3. Activa ventana
+destino 4. Recorre carácter por carácter
+
+Lógica: - Buffer acumula texto normal - Cuando encuentra carácter
+especial: ⏎ → Enter ← → Left → → Right ↑ → Up ↓ → Down
+
+Flujo: - Vacía buffer antes de enviar tecla especial - Usa xdotool type
+para texto - Usa xdotool key para teclas especiales
+
+==================== ARCHIVO: keyboards.py ====================
+
+Clase: VirtualKeyboard
+
+Teclado QWERTY completo.
+
+KEYS: Define distribución de teclas.
+
+Método: _build() - Construye filas de botones - Agrega controles: -
+Mayúsculas - Espacio - Enter (⏎) - Backspace - Limpiar
+
+Método: _type(ch) Inserta carácter en cursor: - Aplica mayúsculas si
+está activo
+
+Método: _backspace() Elimina carácter anterior: - Soporta Text y Entry
+
+Método: _toggle_case() Activa/desactiva mayúsculas
+
+------------------------------------------------------------------------
+
+Clase: Numpad
+
+Teclado numérico.
+
+Método: _build() Incluye: - Números - Símbolos (., /) - Enter -
+Backspace - Limpiar - Flechas (← → ↑ ↓)
+
+Método: _type(ch) Inserta carácter
+
+Método: _backspace() Elimina carácter anterior
+
+------------------------------------------------------------------------
+
+Clase: CharKeyboard
+
+Teclado de caracteres especiales.
+
+KEYS: Define símbolos especiales.
+
+Método: _build() Incluye: - Caracteres especiales - Espacio - Enter -
+Backspace - Limpiar
+
+Método: _type(ch) Inserta carácter
+
+Método: _backspace() Elimina carácter anterior
+
+==================== FLUJO GENERAL ====================
+
+1.  Usuario escribe con teclado virtual
+2.  Puede cambiar layout
+3.  Puede seleccionar ventana destino
+4.  Al enviar:
+    -   Se activa ventana
+    -   Se escribe texto
+    -   Se ejecutan teclas especiales
+
+==================== NOTAS IMPORTANTES ====================
+
+-   Usa xdotool → requiere Linux
+-   Caracteres especiales funcionan como comandos
+-   Text permite múltiples líneas
+-   Scroll global evita desbordes de UI
+
+==================== MEJORAS FUTURAS ====================
+
+-   Separar lógica en módulos:
+    -   ui/
+    -   keyboards/
+    -   services/ (xdotool)
+-   Crear controlador de eventos
+-   Soporte para perfiles de teclado
