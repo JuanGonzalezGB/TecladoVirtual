@@ -204,6 +204,11 @@ class App:
                         subprocess.run(["xdotool", "type", "--delay", "5", buffer])
                         buffer = ""
                     subprocess.run(["xdotool", "key", "Down"])
+                elif ch == "⌦":
+                    if buffer:
+                        subprocess.run(["xdotool", "type", "--delay", "5", buffer])
+                        buffer = ""
+                    subprocess.run(["xdotool", "key", "Delete"])
 
                 else:
                     buffer += ch

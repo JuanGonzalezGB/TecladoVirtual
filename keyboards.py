@@ -49,7 +49,6 @@ class VirtualKeyboard(tk.Frame):
         sp = tk.Frame(self, bg=BG)
         sp.pack(pady=(2, 0))
 
-        # MAYÚSCULAS
         self._btn_case = tk.Button(
             sp, text="abc", width=4,
             bg=BG2, fg=MUTED,
@@ -58,7 +57,6 @@ class VirtualKeyboard(tk.Frame):
         )
         self._btn_case.pack(side="left", padx=1)
 
-        # ESPACIO
         tk.Button(
             sp, text="espacio", width=8,
             bg=BG2, fg=WHITE,
@@ -66,7 +64,6 @@ class VirtualKeyboard(tk.Frame):
             command=lambda: self._type(" ")
         ).pack(side="left", padx=1)
 
-        # ENTER REAL
         tk.Button(
             sp, text="⏎", width=4,
             bg=BG2, fg=CYAN,
@@ -74,7 +71,6 @@ class VirtualKeyboard(tk.Frame):
             command=lambda: self._type("⏎")
         ).pack(side="left", padx=1)
 
-        # BACKSPACE
         tk.Button(
             sp, text="⌫", width=4,
             bg=BG2, fg=ORANGE,
@@ -82,7 +78,14 @@ class VirtualKeyboard(tk.Frame):
             command=self._backspace
         ).pack(side="left", padx=1)
 
-        # LIMPIAR (copiado exactamente)
+        # ✅ DELETE NUEVO
+        tk.Button(
+            sp, text="⌦", width=4,
+            bg=BG2, fg=CYAN,
+            font=F_SMALL, relief="flat", bd=0,
+            command=lambda: self._type("⌦")
+        ).pack(side="left", padx=1)
+
         tk.Button(
             sp, text="Limpiar", width=8,
             bg=BG2, fg=MUTED,
@@ -141,6 +144,7 @@ class Numpad(tk.Frame):
             ("/", WHITE, 2, lambda: self._type("/")),
             ("⏎", CYAN, 2, lambda: self._type("⏎")),
             ("⌫", ORANGE, 2, self._backspace),
+            ("⌦", CYAN, 2, lambda: self._type("⌦")),  # ✅ DELETE
             ("Limpiar", MUTED, 6, lambda: self._entry.delete("1.0", "end")),
             ("⬅", CYAN, 3, lambda: self._type("←")),
             ("➡", CYAN, 3, lambda: self._type("→")),
@@ -198,7 +202,6 @@ class CharKeyboard(tk.Frame):
         sp = tk.Frame(self, bg=BG)
         sp.pack(pady=(2, 0))
 
-        # ESPACIO
         tk.Button(
             sp, text="espacio", width=8,
             bg=BG2, fg=WHITE,
@@ -206,7 +209,6 @@ class CharKeyboard(tk.Frame):
             command=lambda: self._type(" ")
         ).pack(side="left", padx=1)
 
-        # ENTER REAL
         tk.Button(
             sp, text="⏎", width=4,
             bg=BG2, fg=CYAN,
@@ -214,7 +216,6 @@ class CharKeyboard(tk.Frame):
             command=lambda: self._type("⏎")
         ).pack(side="left", padx=1)
 
-        # BACKSPACE
         tk.Button(
             sp, text="⌫", width=4,
             bg=BG2, fg=ORANGE,
@@ -222,7 +223,14 @@ class CharKeyboard(tk.Frame):
             command=self._backspace
         ).pack(side="left", padx=1)
 
-        # LIMPIAR (copiado exactamente)
+        # ✅ DELETE NUEVO
+        tk.Button(
+            sp, text="⌦", width=4,
+            bg=BG2, fg=CYAN,
+            font=F_SMALL, relief="flat", bd=0,
+            command=lambda: self._type("⌦")
+        ).pack(side="left", padx=1)
+
         tk.Button(
             sp, text="Limpiar", width=8,
             bg=BG2, fg=MUTED,
