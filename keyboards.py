@@ -82,25 +82,30 @@ class VirtualKeyboard(tk.Frame):
             command=self._backspace
         ).pack(side="left", padx=1)
 
+        # LIMPIAR (copiado exactamente)
+        tk.Button(
+            sp, text="Limpiar", width=8,
+            bg=BG2, fg=MUTED,
+            font=F_SMALL, relief="flat", bd=0,
+            command=lambda: self._entry.delete("1.0", "end")
+        ).pack(side="left", padx=1)
+
     def _type(self, ch: str):
         ch = ch.upper() if self._uppercase else ch
         self._entry.insert("insert", ch)
 
     def _backspace(self):
         try:
-            # Caso Text (multilínea)
             if isinstance(self._entry, tk.Text):
                 if self._entry.compare("insert", ">", "1.0"):
                     self._entry.delete("insert-1c", "insert")
-
-            # Caso Entry (una sola línea)
             else:
                 pos = self._entry.index("insert")
                 if pos > 0:
                     self._entry.delete(pos - 1, pos)
-
         except Exception:
             pass
+
     def _toggle_case(self):
         self._uppercase = not self._uppercase
         self._btn_case.config(text="ABC" if self._uppercase else "abc")
@@ -120,7 +125,7 @@ class Numpad(tk.Frame):
         rf1.pack()
         for ch in "1234567890":
             tk.Button(
-                rf1, text=ch, width=3,
+                rf1, text=ch, width=2,
                 bg=BG2, fg=WHITE,
                 font=F_NORMAL, relief="flat", bd=0,
                 activebackground=BORDER,
@@ -132,11 +137,15 @@ class Numpad(tk.Frame):
         rf2.pack(pady=(2, 0))
 
         for ch, fg, w, cmd in [
-            (".", WHITE, 4, lambda: self._type(".")),
-            ("/", WHITE, 4, lambda: self._type("/")),
-            ("⏎", CYAN, 4, lambda: self._type("⏎")),
-            ("⌫", ORANGE, 4, self._backspace),
-            ("Limpiar", MUTED, 8, lambda: self._entry.delete("1.0", "end")),
+            (".", WHITE, 2, lambda: self._type(".")),
+            ("/", WHITE, 2, lambda: self._type("/")),
+            ("⏎", CYAN, 2, lambda: self._type("⏎")),
+            ("⌫", ORANGE, 2, self._backspace),
+            ("Limpiar", MUTED, 6, lambda: self._entry.delete("1.0", "end")),
+            ("⬅", CYAN, 3, lambda: self._type("←")),
+            ("➡", CYAN, 3, lambda: self._type("→")),
+            ("⬆", CYAN, 3, lambda: self._type("↑")),
+            ("⬇", CYAN, 3, lambda: self._type("↓")),
         ]:
             tk.Button(
                 rf2, text=ch, width=w,
@@ -211,6 +220,14 @@ class CharKeyboard(tk.Frame):
             bg=BG2, fg=ORANGE,
             font=F_SMALL, relief="flat", bd=0,
             command=self._backspace
+        ).pack(side="left", padx=1)
+
+        # LIMPIAR (copiado exactamente)
+        tk.Button(
+            sp, text="Limpiar", width=8,
+            bg=BG2, fg=MUTED,
+            font=F_SMALL, relief="flat", bd=0,
+            command=lambda: self._entry.delete("1.0", "end")
         ).pack(side="left", padx=1)
 
     def _type(self, ch: str):
