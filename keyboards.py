@@ -22,8 +22,8 @@ class VirtualKeyboard(tk.Frame):
     KEYS = [
         list("1234567890"),
         list("qwertyuiop"),
-        list("asdfghjkl"),
-        list("zxcvbnm-_"),
+        list("asdfghjklñ"),
+        list("zxcvbnm.-_"),
     ]
 
     def __init__(self, parent, entry, **kwargs):
