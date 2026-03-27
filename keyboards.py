@@ -319,7 +319,7 @@ class FnKeyboard(tk.Frame):
             rf.pack()
             for key in row:
                 tk.Button(
-                    rf, text=key, width=4,
+                    rf, text=key, width=3,
                     bg=BG2, fg=ORANGE,
                     font=F_NORMAL, relief="flat", bd=0,
                     activebackground=BORDER,
@@ -334,7 +334,7 @@ class FnKeyboard(tk.Frame):
         for mod in ("Alt", "Ctrl", "Shift"):
             color = MOD_COLORS[mod]
             btn = tk.Button(
-                sp, text=mod, width=4,
+                sp, text=mod, width=3,
                 bg=BG2, fg=color,
                 font=F_SMALL, relief="flat", bd=0,
                 activebackground=BORDER,
@@ -353,7 +353,7 @@ class FnKeyboard(tk.Frame):
             ("PgDn", WHITE),
         ]:
             tk.Button(
-                sp, text=key, width=4,
+                sp, text=key, width=3,
                 bg=BG2, fg=fg,
                 font=F_SMALL, relief="flat", bd=0,
                 activebackground=BORDER,
@@ -366,21 +366,21 @@ class FnKeyboard(tk.Frame):
         sp2.pack(pady=(2, 0))
 
         tk.Button(
-            sp2, text="⏎", width=4,
+            sp2, text="⏎", width=3,
             bg=BG2, fg=CYAN,
             font=F_SMALL, relief="flat", bd=0,
             command=lambda: self._type("⏎")
         ).pack(side="left", padx=1)
 
         tk.Button(
-            sp2, text="⌫", width=4,
+            sp2, text="⌫", width=3,
             bg=BG2, fg=ORANGE,
             font=F_SMALL, relief="flat", bd=0,
             command=self._backspace
         ).pack(side="left", padx=1)
 
         tk.Button(
-            sp2, text="⌦", width=4,
+            sp2, text="⌦", width=3,
             bg=BG2, fg=CYAN,
             font=F_SMALL, relief="flat", bd=0,
             command=lambda: self._type("⌦")
@@ -399,7 +399,7 @@ class FnKeyboard(tk.Frame):
 
         for label, hotkey in [("Copiar", "ctrl+c"), ("Cortar", "ctrl+x"), ("Pegar", "ctrl+v")]:
             tk.Button(
-                sp3, text=label, width=6,
+                sp3, text=label, width=5,
                 bg=BG2, fg=GREEN,
                 font=F_SMALL, relief="flat", bd=0,
                 activebackground=BORDER,
@@ -413,7 +413,7 @@ class FnKeyboard(tk.Frame):
 
         for ch, sym in [("⬅", "←"), ("➡", "→"), ("⬆", "↑"), ("⬇", "↓")]:
             tk.Button(
-                sp4, text=ch, width=3,
+                sp2, text=ch, width=3,
                 bg=BG2, fg=CYAN,
                 font=F_SMALL, relief="flat", bd=0,
                 activebackground=BORDER,
