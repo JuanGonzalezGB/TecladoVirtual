@@ -27,53 +27,53 @@ MOD_COLORS = {
 # =========================================
 class ModifierState:
     def __init__(self):
-        self._active: str | None = None
+        self._active: set[str] = set()
         self._callbacks: list = []
 
-    # ================= FIX ADDED =================
     def reset(self):
-        """Resetea modificadores activos"""
-        self._active = None
+        self._active.clear()
         self._refresh()
-    # ============================================
+
+    def clear_callbacks(self):
+        self._callbacks.clear()
 
     def register(self, mod: str, btn: tk.Button):
         self._callbacks.append((mod, btn))
 
     def toggle(self, mod: str):
-        if self._active == mod:
-            self._active = None
+        if mod in self._active:
+            self._active.remove(mod)
         else:
-            self._active = mod
+            self._active.add(mod)
         self._refresh()
 
     def consume(self) -> str | None:
-        mod = self._active
-        self._active = None
+        if not self._active:
+            return None
+        mod = "+".join(sorted(self._active))
+        self._active.clear()
         self._refresh()
         return mod
 
-    def peek(self) -> str | None:
-        return self._active
+    def peek(self):
+        return "+".join(sorted(self._active)) if self._active else None
 
     def _refresh(self):
-        for mod, btn in self._callbacks:
-            active = (self._active == mod)
-            color = MOD_COLORS.get(mod, CYAN)
-
-            # ================= FIX ADDED =================
+        for mod, btn in list(self._callbacks):
             try:
-                # evita crash si el widget fue destruido al cambiar teclado
-                if btn and btn.winfo_exists():
-                    btn.config(
-                        bg=color if active else BG2,
-                        fg=BG    if active else color,
-                    )
-            except tk.TclError:
-                # widget ya no existe en Tcl (frame destruido)
-                pass
-            # ============================================
+                if not btn.winfo_exists():
+                    continue
 
+                active = mod in self._active
+                color = MOD_COLORS.get(mod, CYAN)
+
+                btn.config(
+                    bg=color if active else BG2,
+                    fg=BG if active else color,
+                )
+
+            except tk.TclError:
+                pass
 
 # =========================================
 # QWERTY

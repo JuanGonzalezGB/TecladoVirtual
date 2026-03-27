@@ -107,10 +107,15 @@ class App:
         self.mode = (self.mode + 1) % 4
         keyboards = [VirtualKeyboard, CharKeyboard, Numpad, FnKeyboard]
         kb_class = keyboards[self.mode]
+
+        #self.modifiers.reset()
+        self.modifiers.clear_callbacks()
+
         if kb_class is FnKeyboard:
             self.keyboard = FnKeyboard(self.kb_frame, self.entry, self.modifiers, self.ctrl)
         else:
             self.keyboard = kb_class(self.kb_frame, self.entry, self.modifiers)
+
         self.keyboard.pack()
 
         # Espera al próximo <Configure> del scrollable_frame (cuando tkinter
@@ -138,9 +143,17 @@ class App:
 
     def _send_text(self):
         text = self.entry.get("1.0", "end-1c")
+
         try:
-            self.ctrl.send_text(text)
-        except (ValueError, RuntimeError) as e:
+            for part in text.split():
+                if "+" in part:   # hotkey detectado
+                    self.ctrl.send_hotkey(part)
+                else:
+                    self.ctrl.send_text(part)
+
+            #self.entry.delete("1.0", "end")
+
+        except Exception as e:
             self._show_error(str(e))
 
     # ------------------------------------------------------------------
