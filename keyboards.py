@@ -319,7 +319,7 @@ class FnKeyboard(tk.Frame):
             rf.pack()
             for key in row:
                 tk.Button(
-                    rf, text=key, width=3,
+                    rf, text=key,height=1, width=3,
                     bg=BG2, fg=ORANGE,
                     font=F_NORMAL, relief="flat", bd=0,
                     activebackground=BORDER,
