@@ -145,13 +145,37 @@ class App:
         text = self.entry.get("1.0", "end-1c")
 
         try:
-            for part in text.split():
-                if "+" in part:   # hotkey detectado
-                    self.ctrl.send_hotkey(part)
-                else:
-                    self.ctrl.send_text(part)
+            buffer = ""
 
-            #self.entry.delete("1.0", "end")
+            i = 0
+            while i < len(text):
+                # Detectar hotkey tipo "ctrl+c"
+                if text[i:i+1].isspace():
+                    buffer += text[i]
+                    i += 1
+                    continue
+
+                # buscar palabra completa para hotkey
+                if text[i].isalpha():
+                    start = i
+                    while i < len(text) and not text[i].isspace():
+                        i += 1
+                    part = text[start:i]
+
+                    if "+" in part:
+                        # flush texto acumulado antes del hotkey
+                        if buffer:
+                            self.ctrl.send_text(buffer)
+                            buffer = ""
+                        self.ctrl.send_hotkey(part)
+                    else:
+                        buffer += part
+                else:
+                    buffer += text[i]
+                    i += 1
+
+            if buffer:
+                self.ctrl.send_text(buffer)
 
         except Exception as e:
             self._show_error(str(e))
