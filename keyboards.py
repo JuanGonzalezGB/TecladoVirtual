@@ -339,6 +339,20 @@ class FnKeyboard(tk.Frame):
             command=lambda: self._entry.delete("1.0", "end")
         ).pack(side="left", padx=1)
 
+        # Fila 3: flechas
+        sp3 = tk.Frame(self, bg=BG)
+        sp3.pack(pady=(2, 0))
+
+        for ch, sym in [("⬅", "←"), ("➡", "→"), ("⬆", "↑"), ("⬇", "↓")]:
+            tk.Button(
+                sp3, text=ch, width=3,
+                bg=BG2, fg=CYAN,
+                font=F_SMALL, relief="flat", bd=0,
+                activebackground=BORDER,
+                activeforeground=CYAN,
+                command=lambda s=sym: self._type(s)
+            ).pack(side="left", padx=2)
+
     def _toggle_alt(self):
         self._alt = not self._alt
         self._btn_alt.config(bg=CYAN if self._alt else BG2,
