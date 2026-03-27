@@ -274,6 +274,7 @@ class FnKeyboard(tk.Frame):
                     command=lambda k=key: self._type(k)
                 ).pack(side="left", padx=2, pady=2)
 
+        # Fila 1: teclas de navegación
         sp = tk.Frame(self, bg=BG)
         sp.pack(pady=(4, 0))
 
@@ -294,39 +295,44 @@ class FnKeyboard(tk.Frame):
                 activeforeground=CYAN,
                 command=lambda k=key: self._type(k)
             ).pack(side="left", padx=2)
+
+        # Fila 2: utilidades
+        sp2 = tk.Frame(self, bg=BG)
+        sp2.pack(pady=(2, 0))
+
         tk.Button(
-            sp, text="⏎", width=4,
+            sp2, text="⏎", width=4,
             bg=BG2, fg=CYAN,
             font=F_SMALL, relief="flat", bd=0,
             command=lambda: self._type("⏎")
         ).pack(side="left", padx=1)
 
         tk.Button(
-            sp, text="⌫", width=4,
+            sp2, text="⌫", width=4,
             bg=BG2, fg=ORANGE,
             font=F_SMALL, relief="flat", bd=0,
             command=self._backspace
         ).pack(side="left", padx=1)
 
         tk.Button(
-            sp, text="⌦", width=4,
+            sp2, text="⌦", width=4,
             bg=BG2, fg=CYAN,
             font=F_SMALL, relief="flat", bd=0,
             command=lambda: self._type("⌦")
         ).pack(side="left", padx=1)
 
         tk.Button(
-            sp, text="Limpiar", width=8,
+            sp2, text="Limpiar", width=8,
             bg=BG2, fg=MUTED,
             font=F_SMALL, relief="flat", bd=0,
             command=lambda: self._entry.delete("1.0", "end")
-        ).pack(side="left", padx=1)            
-    
+        ).pack(side="left", padx=1)
+
     def _backspace(self):
         try:
             self._entry.delete("insert-1c", "insert")
         except:
             pass
-        
+
     def _type(self, key: str):
         self._entry.insert("insert", key)
