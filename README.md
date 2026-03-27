@@ -20,6 +20,7 @@ FUNCIONALIDADES
 - Backspace
 - Delete
 - Enter
+- Teclas Función
 
 --------------------------------------
 TECLAS ESPECIALES
@@ -40,6 +41,7 @@ Se implementaron tres teclados:
 - VirtualKeyboard
 - Numpad
 - CharKeyboard
+- FnKeyboard
 
 Se añadió el botón:
 
