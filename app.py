@@ -81,15 +81,15 @@ class App:
         controls = tk.Frame(self.scrollable_frame, bg=BG)
         controls.pack(pady=10)
 
-        tk.Button(controls, text="Switch Keyboard",
+        tk.Button(controls, text="Cambiar Teclado",
                   command=self._switch_keyboard,
                   bg=BG2, fg=CYAN).pack(side="left", padx=5)
 
-        tk.Button(controls, text="Seleccionar destino",
+        tk.Button(controls, text="Seleccionar Destino",
                   command=self._select_target,
                   bg=BG2, fg=CYAN).pack(side="left", padx=5)
 
-        tk.Button(controls, text="Enviar a otra app",
+        tk.Button(controls, text="Enviar a Destino",
                   command=self._send_text,
                   bg="#0f2520", fg=CYAN).pack(side="left", padx=5)
 
