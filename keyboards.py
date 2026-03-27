@@ -10,9 +10,53 @@ ORANGE  = "#f0a030"
 CYAN    = "#7fd4c1"
 WHITE   = "#e0e0e8"
 MUTED   = "#4a4a5a"
+GREEN   = "#5ecf7a"
 
 F_NORMAL = ("monospace", 9)
 F_SMALL  = ("monospace", 8)
+
+MOD_COLORS = {
+    "Alt":   CYAN,
+    "Ctrl":  ORANGE,
+    "Shift": GREEN,
+}
+
+
+# =========================================
+# MODIFIER STATE
+# =========================================
+class ModifierState:
+    def __init__(self):
+        self._active: str | None = None
+        self._callbacks: list = []
+
+    def register(self, mod: str, btn: tk.Button):
+        self._callbacks.append((mod, btn))
+
+    def toggle(self, mod: str):
+        if self._active == mod:
+            self._active = None
+        else:
+            self._active = mod
+        self._refresh()
+
+    def consume(self) -> str | None:
+        mod = self._active
+        self._active = None
+        self._refresh()
+        return mod
+
+    def peek(self) -> str | None:
+        return self._active
+
+    def _refresh(self):
+        for mod, btn in self._callbacks:
+            active = (self._active == mod)
+            color = MOD_COLORS.get(mod, CYAN)
+            btn.config(
+                bg=color if active else BG2,
+                fg=BG    if active else color,
+            )
 
 
 # =========================================
@@ -26,9 +70,10 @@ class VirtualKeyboard(tk.Frame):
         list("zxcvbnm.-_"),
     ]
 
-    def __init__(self, parent, entry, **kwargs):
+    def __init__(self, parent, entry, modifiers: ModifierState, **kwargs):
         super().__init__(parent, bg=BG, **kwargs)
         self._entry = entry
+        self._modifiers = modifiers
         self._uppercase = False
         self._build()
 
@@ -93,8 +138,12 @@ class VirtualKeyboard(tk.Frame):
         ).pack(side="left", padx=1)
 
     def _type(self, ch: str):
-        ch = ch.upper() if self._uppercase else ch
-        self._entry.insert("insert", ch)
+        mod = self._modifiers.consume()
+        if mod:
+            self._entry.insert("insert", f"{mod}+{ch}")
+        else:
+            ch = ch.upper() if self._uppercase else ch
+            self._entry.insert("insert", ch)
 
     def _backspace(self):
         try:
@@ -117,9 +166,10 @@ class VirtualKeyboard(tk.Frame):
 # NUMPAD
 # =========================================
 class Numpad(tk.Frame):
-    def __init__(self, parent, entry, **kwargs):
+    def __init__(self, parent, entry, modifiers: ModifierState, **kwargs):
         super().__init__(parent, bg=BG, **kwargs)
         self._entry = entry
+        self._modifiers = modifiers
         self._build()
 
     def _build(self):
@@ -179,9 +229,10 @@ class CharKeyboard(tk.Frame):
         list(".,:;\"'¿?"),
     ]
 
-    def __init__(self, parent, entry, **kwargs):
+    def __init__(self, parent, entry, modifiers: ModifierState, **kwargs):
         super().__init__(parent, bg=BG, **kwargs)
         self._entry = entry
+        self._modifiers = modifiers
         self._build()
 
     def _build(self):
@@ -255,11 +306,11 @@ class FnKeyboard(tk.Frame):
         ["F7", "F8", "F9", "F10", "F11", "F12"],
     ]
 
-    def __init__(self, parent, entry, **kwargs):
+    def __init__(self, parent, entry, modifiers: ModifierState, controller=None, **kwargs):
         super().__init__(parent, bg=BG, **kwargs)
         self._entry = entry
-        self._alt = False
-        self._btn_alt = None
+        self._modifiers = modifiers
+        self._controller = controller
         self._build()
 
     def _build(self):
@@ -276,18 +327,21 @@ class FnKeyboard(tk.Frame):
                     command=lambda k=key: self._type_fn(k)
                 ).pack(side="left", padx=2, pady=2)
 
-        # Fila 1: teclas de navegación
+        # Fila 1: modificadores + navegación
         sp = tk.Frame(self, bg=BG)
         sp.pack(pady=(4, 0))
 
-        self._btn_alt = tk.Button(
-            sp, text="Alt", width=4,
-            bg=BG2, fg=CYAN,
-            font=F_SMALL, relief="flat", bd=0,
-            activebackground=BORDER,
-            command=self._toggle_alt
-        )
-        self._btn_alt.pack(side="left", padx=2)
+        for mod in ("Alt", "Ctrl", "Shift"):
+            color = MOD_COLORS[mod]
+            btn = tk.Button(
+                sp, text=mod, width=4,
+                bg=BG2, fg=color,
+                font=F_SMALL, relief="flat", bd=0,
+                activebackground=BORDER,
+                command=lambda m=mod: self._modifiers.toggle(m)
+            )
+            btn.pack(side="left", padx=2)
+            self._modifiers.register(mod, btn)
 
         for key, fg in [
             ("Esc",  CYAN),
@@ -339,13 +393,27 @@ class FnKeyboard(tk.Frame):
             command=lambda: self._entry.delete("1.0", "end")
         ).pack(side="left", padx=1)
 
-        # Fila 3: flechas
+        # Fila 3: acciones rápidas de portapapeles
         sp3 = tk.Frame(self, bg=BG)
         sp3.pack(pady=(2, 0))
 
+        for label, hotkey in [("Copiar", "ctrl+c"), ("Cortar", "ctrl+x"), ("Pegar", "ctrl+v")]:
+            tk.Button(
+                sp3, text=label, width=6,
+                bg=BG2, fg=GREEN,
+                font=F_SMALL, relief="flat", bd=0,
+                activebackground=BORDER,
+                activeforeground=CYAN,
+                command=lambda hk=hotkey: self._send_hotkey(hk)
+            ).pack(side="left", padx=2)
+
+        # Fila 4: flechas
+        sp4 = tk.Frame(self, bg=BG)
+        sp4.pack(pady=(2, 0))
+
         for ch, sym in [("⬅", "←"), ("➡", "→"), ("⬆", "↑"), ("⬇", "↓")]:
             tk.Button(
-                sp3, text=ch, width=3,
+                sp4, text=ch, width=3,
                 bg=BG2, fg=CYAN,
                 font=F_SMALL, relief="flat", bd=0,
                 activebackground=BORDER,
@@ -353,21 +421,24 @@ class FnKeyboard(tk.Frame):
                 command=lambda s=sym: self._type(s)
             ).pack(side="left", padx=2)
 
-    def _toggle_alt(self):
-        self._alt = not self._alt
-        self._btn_alt.config(bg=CYAN if self._alt else BG2,
-                             fg=BG  if self._alt else CYAN)
+    def _send_hotkey(self, hotkey: str):
+        """Envía una combinación directamente a la ventana destino."""
+        if self._controller:
+            try:
+                self._controller.send_hotkey(hotkey)
+            except (ValueError, RuntimeError) as e:
+                print(f"Error hotkey: {e}")
 
     def _type_fn(self, key: str):
-        """F1-F12: si Alt está activo inserta Alt+F4, si no F4."""
-        if self._alt:
-            self._entry.insert("insert", f"Alt+{key}")
-            self._alt = False
-            self._btn_alt.config(bg=BG2, fg=CYAN)
+        """Tecla con soporte de modificador: Ctrl+c, Alt+F4, etc."""
+        mod = self._modifiers.consume()
+        if mod:
+            self._entry.insert("insert", f"{mod}+{key}")
         else:
             self._entry.insert("insert", key)
 
     def _type(self, key: str):
+        """Tecla que se inserta siempre literal (flechas, Esc, etc.)."""
         self._entry.insert("insert", key)
 
     def _backspace(self):

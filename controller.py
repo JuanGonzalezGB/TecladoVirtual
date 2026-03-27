@@ -30,7 +30,9 @@ _SPECIAL_KEYS = {
 
 # Modificadores que se combinan con otras teclas
 _MODIFIERS = {
-    "Alt": "alt",
+    "Alt":   "alt",
+    "Ctrl":  "ctrl",
+    "Shift": "shift",
 }
 
 
@@ -71,6 +73,20 @@ class WindowController:
         self.target_window = win_id
         self.target_name = name
         return win_id, name
+
+    def send_hotkey(self, key: str) -> None:
+        """
+        Envía una combinación de teclas directamente a la ventana destino.
+        Ejemplo: key="ctrl+c"
+        Lanza ValueError si no hay ventana seleccionada.
+        """
+        if not self.target_window:
+            raise ValueError("No hay ventana destino seleccionada.")
+        try:
+            subprocess.run(["xdotool", "windowactivate", self.target_window], check=True)
+            subprocess.run(["xdotool", "key", key], check=True)
+        except subprocess.CalledProcessError as e:
+            raise RuntimeError(f"Error al enviar hotkey: {e}")
 
     def clear_target(self):
         self.target_window = None

@@ -3,7 +3,7 @@ app.py — GUI puro, sin lógica de xdotool
 """
 import tkinter as tk
 
-from keyboards import VirtualKeyboard, Numpad, CharKeyboard, FnKeyboard
+from keyboards import VirtualKeyboard, Numpad, CharKeyboard, FnKeyboard, ModifierState
 from controller import WindowController
 
 BG   = "#0f0f12"
@@ -19,7 +19,8 @@ class App:
         self.root.configure(bg=BG)
 
         self.mode = 0
-        self.ctrl = WindowController()   # ← toda la lógica vive aquí
+        self.ctrl = WindowController()
+        self.modifiers = ModifierState()   # ← toda la lógica vive aquí
 
         self._build()
 
@@ -74,22 +75,22 @@ class App:
         # Teclado
         self.kb_frame = tk.Frame(self.scrollable_frame, bg=BG)
         self.kb_frame.pack(pady=10)
-        self.keyboard = VirtualKeyboard(self.kb_frame, self.entry)
+        self.keyboard = VirtualKeyboard(self.kb_frame, self.entry, self.modifiers)
         self.keyboard.pack()
 
         # Botones de control
         controls = tk.Frame(self.scrollable_frame, bg=BG)
         controls.pack(pady=10)
 
-        tk.Button(controls, text="Cambiar Teclado",
+        tk.Button(controls, text="Switch Keyboard",
                   command=self._switch_keyboard,
                   bg=BG2, fg=CYAN).pack(side="left", padx=5)
 
-        tk.Button(controls, text="Seleccionar Destino",
+        tk.Button(controls, text="Seleccionar destino",
                   command=self._select_target,
                   bg=BG2, fg=CYAN).pack(side="left", padx=5)
 
-        tk.Button(controls, text="Enviar a Destino",
+        tk.Button(controls, text="Enviar a otra app",
                   command=self._send_text,
                   bg="#0f2520", fg=CYAN).pack(side="left", padx=5)
 
@@ -105,7 +106,11 @@ class App:
 
         self.mode = (self.mode + 1) % 4
         keyboards = [VirtualKeyboard, CharKeyboard, Numpad, FnKeyboard]
-        self.keyboard = keyboards[self.mode](self.kb_frame, self.entry)
+        kb_class = keyboards[self.mode]
+        if kb_class is FnKeyboard:
+            self.keyboard = FnKeyboard(self.kb_frame, self.entry, self.modifiers, self.ctrl)
+        else:
+            self.keyboard = kb_class(self.kb_frame, self.entry, self.modifiers)
         self.keyboard.pack()
 
         # Espera al próximo <Configure> del scrollable_frame (cuando tkinter
