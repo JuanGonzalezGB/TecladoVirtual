@@ -36,7 +36,7 @@ TECLAS ESPECIALES
 --------------------------------------
 keyboards.py
 
-Se implementaron tres teclados:
+Se implementaron cuatro teclados:
 
 - VirtualKeyboard
 - Numpad
