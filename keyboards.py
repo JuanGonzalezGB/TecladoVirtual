@@ -30,6 +30,13 @@ class ModifierState:
         self._active: str | None = None
         self._callbacks: list = []
 
+    # ================= FIX ADDED =================
+    def reset(self):
+        """Resetea modificadores activos"""
+        self._active = None
+        self._refresh()
+    # ============================================
+
     def register(self, mod: str, btn: tk.Button):
         self._callbacks.append((mod, btn))
 
@@ -53,10 +60,19 @@ class ModifierState:
         for mod, btn in self._callbacks:
             active = (self._active == mod)
             color = MOD_COLORS.get(mod, CYAN)
-            btn.config(
-                bg=color if active else BG2,
-                fg=BG    if active else color,
-            )
+
+            # ================= FIX ADDED =================
+            try:
+                # evita crash si el widget fue destruido al cambiar teclado
+                if btn and btn.winfo_exists():
+                    btn.config(
+                        bg=color if active else BG2,
+                        fg=BG    if active else color,
+                    )
+            except tk.TclError:
+                # widget ya no existe en Tcl (frame destruido)
+                pass
+            # ============================================
 
 
 # =========================================
@@ -327,7 +343,6 @@ class FnKeyboard(tk.Frame):
                     command=lambda k=key: self._type_fn(k)
                 ).pack(side="left", padx=2, pady=2)
 
-        # Fila 1: modificadores + navegación
         sp = tk.Frame(self, bg=BG)
         sp.pack(pady=(4, 0))
 
@@ -361,7 +376,6 @@ class FnKeyboard(tk.Frame):
                 command=lambda k=key: self._type(k)
             ).pack(side="left", padx=2)
 
-        # Fila 2: utilidades
         sp2 = tk.Frame(self, bg=BG)
         sp2.pack(pady=(2, 0))
 
@@ -393,7 +407,6 @@ class FnKeyboard(tk.Frame):
             command=lambda: self._entry.delete("1.0", "end")
         ).pack(side="left", padx=1)
 
-        # Fila 3: acciones rápidas de portapapeles
         sp3 = tk.Frame(self, bg=BG)
         sp3.pack(pady=(2, 0))
 
@@ -407,7 +420,6 @@ class FnKeyboard(tk.Frame):
                 command=lambda hk=hotkey: self._send_hotkey(hk)
             ).pack(side="left", padx=2)
 
-        # Fila 4: flechas
         sp4 = tk.Frame(self, bg=BG)
         sp4.pack(pady=(2, 0))
 
@@ -422,7 +434,6 @@ class FnKeyboard(tk.Frame):
             ).pack(side="left", padx=2)
 
     def _send_hotkey(self, hotkey: str):
-        """Envía una combinación directamente a la ventana destino."""
         if self._controller:
             try:
                 self._controller.send_hotkey(hotkey)
@@ -430,7 +441,6 @@ class FnKeyboard(tk.Frame):
                 print(f"Error hotkey: {e}")
 
     def _type_fn(self, key: str):
-        """Tecla con soporte de modificador: Ctrl+c, Alt+F4, etc."""
         mod = self._modifiers.consume()
         if mod:
             self._entry.insert("insert", f"{mod}+{key}")
@@ -438,7 +448,6 @@ class FnKeyboard(tk.Frame):
             self._entry.insert("insert", key)
 
     def _type(self, key: str):
-        """Tecla que se inserta siempre literal (flechas, Esc, etc.)."""
         self._entry.insert("insert", key)
 
     def _backspace(self):

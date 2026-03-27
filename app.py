@@ -120,7 +120,8 @@ class App:
             self.canvas.yview_moveto(scroll_pos)
 
         bind_id = self.scrollable_frame.bind("<Configure>", _restore)
-
+        self.entry.focus_set()
+        self.root.focus_force()
     def _select_target(self):
         """Minimiza la app y captura la ventana que quede enfocada."""
         self.root.iconify()
