@@ -258,6 +258,8 @@ class FnKeyboard(tk.Frame):
     def __init__(self, parent, entry, **kwargs):
         super().__init__(parent, bg=BG, **kwargs)
         self._entry = entry
+        self._alt = False
+        self._btn_alt = None
         self._build()
 
     def _build(self):
@@ -271,17 +273,25 @@ class FnKeyboard(tk.Frame):
                     font=F_NORMAL, relief="flat", bd=0,
                     activebackground=BORDER,
                     activeforeground=CYAN,
-                    command=lambda k=key: self._type(k)
+                    command=lambda k=key: self._type_fn(k)
                 ).pack(side="left", padx=2, pady=2)
 
         # Fila 1: teclas de navegación
         sp = tk.Frame(self, bg=BG)
         sp.pack(pady=(4, 0))
 
+        self._btn_alt = tk.Button(
+            sp, text="Alt", width=4,
+            bg=BG2, fg=CYAN,
+            font=F_SMALL, relief="flat", bd=0,
+            activebackground=BORDER,
+            command=self._toggle_alt
+        )
+        self._btn_alt.pack(side="left", padx=2)
+
         for key, fg in [
             ("Esc",  CYAN),
             ("Tab",  WHITE),
-            ("Alt",  CYAN),
             ("Ins",  WHITE),
             ("Home", WHITE),
             ("End",  WHITE),
@@ -329,11 +339,25 @@ class FnKeyboard(tk.Frame):
             command=lambda: self._entry.delete("1.0", "end")
         ).pack(side="left", padx=1)
 
+    def _toggle_alt(self):
+        self._alt = not self._alt
+        self._btn_alt.config(bg=CYAN if self._alt else BG2,
+                             fg=BG  if self._alt else CYAN)
+
+    def _type_fn(self, key: str):
+        """F1-F12: si Alt está activo inserta Alt+F4, si no F4."""
+        if self._alt:
+            self._entry.insert("insert", f"Alt+{key}")
+            self._alt = False
+            self._btn_alt.config(bg=BG2, fg=CYAN)
+        else:
+            self._entry.insert("insert", key)
+
+    def _type(self, key: str):
+        self._entry.insert("insert", key)
+
     def _backspace(self):
         try:
             self._entry.delete("insert-1c", "insert")
         except:
             pass
-
-    def _type(self, key: str):
-        self._entry.insert("insert", key)

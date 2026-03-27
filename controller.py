@@ -28,6 +28,11 @@ _SPECIAL_KEYS = {
     "PgDn": "Next",
 }
 
+# Modificadores que se combinan con otras teclas
+_MODIFIERS = {
+    "Alt": "alt",
+}
+
 
 class WindowController:
     """
@@ -102,7 +107,18 @@ class WindowController:
         buffer = ""
         i = 0
         while i < len(text):
-            # Intenta casar las claves más largas primero (ej: "PgUp" antes de "P")
+            # Combinaciones Alt+Fx  (ej: "Alt+F4")
+            combo = self._match_combo(text, i)
+            if combo:
+                self._flush_buffer(buffer)
+                buffer = ""
+                modifier, key = combo
+                xkey = f"{_MODIFIERS[modifier]}+{_SPECIAL_KEYS.get(key, key)}"
+                subprocess.run(["xdotool", "key", xkey])
+                i += len(modifier) + 1 + len(key)  # "Alt" + "+" + "F4"
+                continue
+
+            # Teclas especiales simples (más largas primero)
             matched = None
             for key in sorted(_SPECIAL_KEYS, key=len, reverse=True):
                 if text[i:].startswith(key):
@@ -119,6 +135,19 @@ class WindowController:
                 i += 1
 
         self._flush_buffer(buffer)
+
+    @staticmethod
+    def _match_combo(text: str, i: int):
+        """Detecta patrón Modificador+Tecla en la posición i.
+        Devuelve (modifier, key) o None."""
+        for mod in _MODIFIERS:
+            prefix = mod + "+"
+            if text[i:].startswith(prefix):
+                rest = text[i + len(prefix):]
+                for key in sorted(_SPECIAL_KEYS, key=len, reverse=True):
+                    if rest.startswith(key):
+                        return mod, key
+        return None
 
     @staticmethod
     def _flush_buffer(buffer: str) -> None:
