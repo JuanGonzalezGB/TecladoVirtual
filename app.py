@@ -98,6 +98,8 @@ class App:
     # ------------------------------------------------------------------
 
     def _switch_keyboard(self):
+        scroll_pos = self.canvas.yview()[0]  # guarda posición antes de redibujar
+
         for widget in self.kb_frame.winfo_children():
             widget.destroy()
 
@@ -105,6 +107,9 @@ class App:
         keyboards = [VirtualKeyboard, CharKeyboard, Numpad]
         self.keyboard = keyboards[self.mode](self.kb_frame, self.entry)
         self.keyboard.pack()
+
+        # after() espera a que tkinter recalcule el scrollregion antes de restaurar
+        self.root.after(0, lambda: self.canvas.yview_moveto(scroll_pos))
 
     def _select_target(self):
         """Minimiza la app y captura la ventana que quede enfocada."""
