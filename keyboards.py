@@ -294,6 +294,39 @@ class FnKeyboard(tk.Frame):
                 activeforeground=CYAN,
                 command=lambda k=key: self._type(k)
             ).pack(side="left", padx=2)
+        tk.Button(
+            sp, text="⏎", width=4,
+            bg=BG2, fg=CYAN,
+            font=F_SMALL, relief="flat", bd=0,
+            command=lambda: self._type("⏎")
+        ).pack(side="left", padx=1)
 
+        tk.Button(
+            sp, text="⌫", width=4,
+            bg=BG2, fg=ORANGE,
+            font=F_SMALL, relief="flat", bd=0,
+            command=self._backspace
+        ).pack(side="left", padx=1)
+
+        tk.Button(
+            sp, text="⌦", width=4,
+            bg=BG2, fg=CYAN,
+            font=F_SMALL, relief="flat", bd=0,
+            command=lambda: self._type("⌦")
+        ).pack(side="left", padx=1)
+
+        tk.Button(
+            sp, text="Limpiar", width=8,
+            bg=BG2, fg=MUTED,
+            font=F_SMALL, relief="flat", bd=0,
+            command=lambda: self._entry.delete("1.0", "end")
+        ).pack(side="left", padx=1)            
+    
+    def _backspace(self):
+        try:
+            self._entry.delete("insert-1c", "insert")
+        except:
+            pass
+        
     def _type(self, key: str):
         self._entry.insert("insert", key)
