@@ -20,6 +20,7 @@ _SPECIAL_KEYS = {
     # Teclas extra
     "Esc":  "Escape",
     "Tab":  "Tab",
+    "Alt":  "alt",
     "Ins":  "Insert",
     "Home": "Home",
     "End":  "End",

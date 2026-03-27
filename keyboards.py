@@ -281,6 +281,7 @@ class FnKeyboard(tk.Frame):
         for key, fg in [
             ("Esc",  CYAN),
             ("Tab",  WHITE),
+            ("Alt",  CYAN),
             ("Ins",  WHITE),
             ("Home", WHITE),
             ("End",  WHITE),
