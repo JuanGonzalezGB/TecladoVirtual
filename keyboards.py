@@ -1,5 +1,5 @@
 """
-view/keyboards.py — teclados virtuales reutilizables
+keyboards.py — teclados virtuales reutilizables
 """
 import tkinter as tk
 
@@ -78,7 +78,6 @@ class VirtualKeyboard(tk.Frame):
             command=self._backspace
         ).pack(side="left", padx=1)
 
-        # ✅ DELETE NUEVO
         tk.Button(
             sp, text="⌦", width=4,
             bg=BG2, fg=CYAN,
@@ -144,7 +143,7 @@ class Numpad(tk.Frame):
             ("/", WHITE, 2, lambda: self._type("/")),
             ("⏎", CYAN, 2, lambda: self._type("⏎")),
             ("⌫", ORANGE, 2, self._backspace),
-            ("⌦", CYAN, 2, lambda: self._type("⌦")),  # ✅ DELETE
+            ("⌦", CYAN, 2, lambda: self._type("⌦")),
             ("Limpiar", MUTED, 6, lambda: self._entry.delete("1.0", "end")),
             ("⬅", CYAN, 3, lambda: self._type("←")),
             ("➡", CYAN, 3, lambda: self._type("→")),
@@ -223,7 +222,6 @@ class CharKeyboard(tk.Frame):
             command=self._backspace
         ).pack(side="left", padx=1)
 
-        # ✅ DELETE NUEVO
         tk.Button(
             sp, text="⌦", width=4,
             bg=BG2, fg=CYAN,
@@ -246,3 +244,56 @@ class CharKeyboard(tk.Frame):
             self._entry.delete("insert-1c", "insert")
         except:
             pass
+
+
+# =========================================
+# FUNCTION KEYS
+# =========================================
+class FnKeyboard(tk.Frame):
+    KEYS = [
+        ["F1", "F2", "F3", "F4", "F5", "F6"],
+        ["F7", "F8", "F9", "F10", "F11", "F12"],
+    ]
+
+    def __init__(self, parent, entry, **kwargs):
+        super().__init__(parent, bg=BG, **kwargs)
+        self._entry = entry
+        self._build()
+
+    def _build(self):
+        for row in self.KEYS:
+            rf = tk.Frame(self, bg=BG)
+            rf.pack()
+            for key in row:
+                tk.Button(
+                    rf, text=key, width=4,
+                    bg=BG2, fg=ORANGE,
+                    font=F_NORMAL, relief="flat", bd=0,
+                    activebackground=BORDER,
+                    activeforeground=CYAN,
+                    command=lambda k=key: self._type(k)
+                ).pack(side="left", padx=2, pady=2)
+
+        sp = tk.Frame(self, bg=BG)
+        sp.pack(pady=(4, 0))
+
+        for key, fg in [
+            ("Esc",  CYAN),
+            ("Tab",  WHITE),
+            ("Ins",  WHITE),
+            ("Home", WHITE),
+            ("End",  WHITE),
+            ("PgUp", WHITE),
+            ("PgDn", WHITE),
+        ]:
+            tk.Button(
+                sp, text=key, width=4,
+                bg=BG2, fg=fg,
+                font=F_SMALL, relief="flat", bd=0,
+                activebackground=BORDER,
+                activeforeground=CYAN,
+                command=lambda k=key: self._type(k)
+            ).pack(side="left", padx=2)
+
+    def _type(self, key: str):
+        self._entry.insert("insert", key)

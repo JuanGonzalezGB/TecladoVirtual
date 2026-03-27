@@ -7,12 +7,24 @@ import subprocess
 
 # Caracteres especiales que se traducen a teclas xdotool
 _SPECIAL_KEYS = {
-    "⏎": "Return",
-    "←": "Left",
-    "→": "Right",
-    "↑": "Up",
-    "↓": "Down",
-    "⌦": "Delete",
+    "⏎":   "Return",
+    "←":   "Left",
+    "→":   "Right",
+    "↑":   "Up",
+    "↓":   "Down",
+    "⌦":   "Delete",
+    # Teclas de función
+    "F1":  "F1",  "F2":  "F2",  "F3":  "F3",  "F4":  "F4",
+    "F5":  "F5",  "F6":  "F6",  "F7":  "F7",  "F8":  "F8",
+    "F9":  "F9",  "F10": "F10", "F11": "F11", "F12": "F12",
+    # Teclas extra
+    "Esc":  "Escape",
+    "Tab":  "Tab",
+    "Ins":  "Insert",
+    "Home": "Home",
+    "End":  "End",
+    "PgUp": "Prior",
+    "PgDn": "Next",
 }
 
 
@@ -87,15 +99,23 @@ class WindowController:
     def _dispatch(self, text: str) -> None:
         """Recorre el texto y manda cada carácter o tecla especial."""
         buffer = ""
+        i = 0
+        while i < len(text):
+            # Intenta casar las claves más largas primero (ej: "PgUp" antes de "P")
+            matched = None
+            for key in sorted(_SPECIAL_KEYS, key=len, reverse=True):
+                if text[i:].startswith(key):
+                    matched = key
+                    break
 
-        for ch in text:
-            key = _SPECIAL_KEYS.get(ch)
-            if key:
+            if matched:
                 self._flush_buffer(buffer)
                 buffer = ""
-                subprocess.run(["xdotool", "key", key])
+                subprocess.run(["xdotool", "key", _SPECIAL_KEYS[matched]])
+                i += len(matched)
             else:
-                buffer += ch
+                buffer += text[i]
+                i += 1
 
         self._flush_buffer(buffer)
 

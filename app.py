@@ -3,7 +3,7 @@ app.py — GUI puro, sin lógica de xdotool
 """
 import tkinter as tk
 
-from keyboards import VirtualKeyboard, Numpad, CharKeyboard
+from keyboards import VirtualKeyboard, Numpad, CharKeyboard, FnKeyboard
 from controller import WindowController
 
 BG   = "#0f0f12"
@@ -103,8 +103,8 @@ class App:
         for widget in self.kb_frame.winfo_children():
             widget.destroy()
 
-        self.mode = (self.mode + 1) % 3
-        keyboards = [VirtualKeyboard, CharKeyboard, Numpad]
+        self.mode = (self.mode + 1) % 4
+        keyboards = [VirtualKeyboard, CharKeyboard, Numpad, FnKeyboard]
         self.keyboard = keyboards[self.mode](self.kb_frame, self.entry)
         self.keyboard.pack()
 
