@@ -334,7 +334,7 @@ class FnKeyboard(tk.Frame):
         for mod in ("Alt", "Ctrl", "Shift"):
             color = MOD_COLORS[mod]
             btn = tk.Button(
-                sp, text=mod, width=3,
+                sp, text=mod, width=2,
                 bg=BG2, fg=color,
                 font=F_SMALL, relief="flat", bd=0,
                 activebackground=BORDER,
@@ -353,7 +353,7 @@ class FnKeyboard(tk.Frame):
             ("PgDn", WHITE),
         ]:
             tk.Button(
-                sp, text=key, width=3,
+                sp, text=key, width=2,
                 bg=BG2, fg=fg,
                 font=F_SMALL, relief="flat", bd=0,
                 activebackground=BORDER,
