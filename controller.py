@@ -1,0 +1,105 @@
+"""
+controller.py — lógica de negocio separada del GUI
+Maneja todo lo relacionado con xdotool y la ventana destino.
+"""
+import subprocess
+
+
+# Caracteres especiales que se traducen a teclas xdotool
+_SPECIAL_KEYS = {
+    "⏎": "Return",
+    "←": "Left",
+    "→": "Right",
+    "↑": "Up",
+    "↓": "Down",
+    "⌦": "Delete",
+}
+
+
+class WindowController:
+    """
+    Encapsula la selección de ventana destino y el envío de texto vía xdotool.
+    No sabe nada de tkinter.
+    """
+
+    def __init__(self):
+        self.target_window: str | None = None
+        self.target_name: str = "No seleccionado"
+
+    # ------------------------------------------------------------------
+    # Selección de ventana
+    # ------------------------------------------------------------------
+
+    def capture_focused_window(self) -> tuple[str, str]:
+        """
+        Captura la ventana que tenga el foco en ese momento.
+        Devuelve (window_id, window_name).
+        Lanza RuntimeError si xdotool falla.
+        """
+        try:
+            win_id = subprocess.check_output(
+                ["xdotool", "getwindowfocus"]
+            ).decode().strip()
+        except subprocess.CalledProcessError as e:
+            raise RuntimeError(f"No se pudo obtener la ventana activa: {e}")
+
+        try:
+            name = subprocess.check_output(
+                ["xdotool", "getwindowname", win_id]
+            ).decode().strip()
+        except subprocess.CalledProcessError:
+            name = "Ventana desconocida"
+
+        self.target_window = win_id
+        self.target_name = name
+        return win_id, name
+
+    def clear_target(self):
+        self.target_window = None
+        self.target_name = "No seleccionado"
+
+    # ------------------------------------------------------------------
+    # Envío de texto
+    # ------------------------------------------------------------------
+
+    def send_text(self, text: str) -> None:
+        """
+        Envía `text` a la ventana destino.
+        Los caracteres especiales (⏎ ← → ↑ ↓ ⌦) se convierten en teclas.
+        Lanza ValueError si no hay ventana seleccionada.
+        Lanza RuntimeError si xdotool falla.
+        """
+        if not self.target_window:
+            raise ValueError("No hay ventana destino seleccionada.")
+
+        if not text:
+            return
+
+        try:
+            subprocess.run(
+                ["xdotool", "windowactivate", self.target_window],
+                check=True
+            )
+            self._dispatch(text)
+        except subprocess.CalledProcessError as e:
+            raise RuntimeError(f"Error al enviar texto: {e}")
+
+    def _dispatch(self, text: str) -> None:
+        """Recorre el texto y manda cada carácter o tecla especial."""
+        buffer = ""
+
+        for ch in text:
+            key = _SPECIAL_KEYS.get(ch)
+            if key:
+                self._flush_buffer(buffer)
+                buffer = ""
+                subprocess.run(["xdotool", "key", key])
+            else:
+                buffer += ch
+
+        self._flush_buffer(buffer)
+
+    @staticmethod
+    def _flush_buffer(buffer: str) -> None:
+        if buffer:
+            subprocess.run(["xdotool", "type", "--delay", "5", buffer])
