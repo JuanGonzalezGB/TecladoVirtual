@@ -219,10 +219,10 @@ class Numpad(tk.Frame):
             ("⌫", e.orange, 2, self._backspace),
             ("⌦", e.cyan, 2, lambda: self._type("⟨⌦⟩")),
             ("Limpiar", e.muted, 6, lambda: self._entry.delete("1.0", "end")),
-            ("⬅", e.cyan, 3, lambda: self._type("←")),
-            ("➡", e.cyan, 3, lambda: self._type("→")),
-            ("⬆", e.cyan, 3, lambda: self._type("↑")),
-            ("⬇", e.cyan, 3, lambda: self._type("↓")),
+            ("⬅", e.cyan, 3, lambda: self._type("⟨←⟩")),
+            ("➡", e.cyan, 3, lambda: self._type("⟨→⟩")),
+            ("⬆", e.cyan, 3, lambda: self._type("⟨↑⟩")),
+            ("⬇", e.cyan, 3, lambda: self._type("⟨↓⟩")),
         ]:
             tk.Button(
                 rf2, text=ch, width=w,
@@ -442,7 +442,7 @@ class FnKeyboard(tk.Frame):
         sp4 = tk.Frame(self, bg=e.bg)
         sp4.pack(pady=(2, 0))
 
-        for label, sym in [("⬅", "←"), ("➡", "→"), ("⬆", "↑"), ("⬇", "↓")]:
+        for label, sym in [("⬅", "⟨←⟩"), ("➡", "⟨→⟩"), ("⬆", "⟨↑⟩"), ("⬇", "⟨↓⟩")]:
             tk.Button(
                 sp4, text=label, width=3,
                 bg=e.bg2, fg=e.red,
