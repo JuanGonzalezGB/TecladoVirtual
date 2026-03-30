@@ -1,10 +1,21 @@
-"""
-main.py — punto de entrada
-"""
+#!/usr/bin/env python3
+import sys
 import tkinter as tk
-from app import App
+
+from modelo import config
+from vista.app import App
+
+
+def main():
+    # override opcional desde CLI
+    if len(sys.argv) > 1:
+        config.set_theme(sys.argv[1])
+
+    root = tk.Tk()
+    app = App(root, config)
+
+    root.mainloop()
+
 
 if __name__ == "__main__":
-    root = tk.Tk()
-    App(root)
-    root.mainloop()
+    main()

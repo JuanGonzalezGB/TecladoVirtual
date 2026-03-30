@@ -3,27 +3,22 @@ keyboards.py — teclados virtuales reutilizables
 """
 import tkinter as tk
 
-BG      = "#0f0f12"
-BG2     = "#161620"
-BORDER  = "#1e1e2a"
-ORANGE  = "#f0a030"
-CYAN    = "#7fd4c1"
-WHITE   = "#e0e0e8"
-MUTED   = "#4a4a5a"
-GREEN   = "#5ecf7a"
 
 F_NORMAL = ("monospace", 9)
 F_SMALL  = ("monospace", 8)
 
-MOD_COLORS = {
-    "Alt":   CYAN,
-    "Ctrl":  ORANGE,
-    "Shift": GREEN,
-}
+
+def get_mod_colors(estilo):
+    return {
+        "Alt": estilo.cyan,
+        "Ctrl": estilo.orange,
+        "Shift": estilo.green,
+    }
 
 
 # =========================================
 # MODIFIER STATE
+# (sin cambios lógicos, solo UI externa)
 # =========================================
 class ModifierState:
     def __init__(self):
@@ -65,15 +60,14 @@ class ModifierState:
                     continue
 
                 active = mod in self._active
-                color = MOD_COLORS.get(mod, CYAN)
 
                 btn.config(
-                    bg=color if active else BG2,
-                    fg=BG if active else color,
+                    bg=btn.cget("activebackground") if active else btn.cget("bg"),
                 )
 
             except tk.TclError:
                 pass
+
 
 # =========================================
 # QWERTY
@@ -86,33 +80,37 @@ class VirtualKeyboard(tk.Frame):
         list("zxcvbnm.-_"),
     ]
 
-    def __init__(self, parent, entry, modifiers: ModifierState, **kwargs):
-        super().__init__(parent, bg=BG, **kwargs)
+    def __init__(self, parent, entry, modifiers: ModifierState, estilo, **kwargs):
+        super().__init__(parent, bg=estilo.bg, **kwargs)
         self._entry = entry
         self._modifiers = modifiers
+        self._estilo = estilo
         self._uppercase = False
         self._build()
 
     def _build(self):
+        e = self._estilo
+
         for row in self.KEYS:
-            rf = tk.Frame(self, bg=BG)
+            rf = tk.Frame(self, bg=e.bg)
             rf.pack()
+
             for ch in row:
                 tk.Button(
                     rf, text=ch, width=3,
-                    bg=BG2, fg=WHITE,
+                    bg=e.bg2, fg=e.white,
                     font=F_SMALL, relief="flat", bd=0,
-                    activebackground=BORDER,
-                    activeforeground=CYAN,
+                    activebackground=e.border,
+                    activeforeground=e.cyan,
                     command=lambda c=ch: self._type(c)
                 ).pack(side="left", padx=1, pady=1)
 
-        sp = tk.Frame(self, bg=BG)
+        sp = tk.Frame(self, bg=e.bg)
         sp.pack(pady=(2, 0))
 
         self._btn_case = tk.Button(
             sp, text="abc", width=4,
-            bg=BG2, fg=MUTED,
+            bg=e.bg2, fg=e.muted,
             font=F_SMALL, relief="flat", bd=0,
             command=self._toggle_case
         )
@@ -120,35 +118,35 @@ class VirtualKeyboard(tk.Frame):
 
         tk.Button(
             sp, text="espacio", width=8,
-            bg=BG2, fg=WHITE,
+            bg=e.bg2, fg=e.white,
             font=F_SMALL, relief="flat", bd=0,
             command=lambda: self._type(" ")
         ).pack(side="left", padx=1)
 
         tk.Button(
             sp, text="⏎", width=4,
-            bg=BG2, fg=CYAN,
+            bg=e.bg2, fg=e.cyan,
             font=F_SMALL, relief="flat", bd=0,
             command=lambda: self._type("⏎")
         ).pack(side="left", padx=1)
 
         tk.Button(
             sp, text="⌫", width=4,
-            bg=BG2, fg=ORANGE,
+            bg=e.bg2, fg=e.orange,
             font=F_SMALL, relief="flat", bd=0,
             command=self._backspace
         ).pack(side="left", padx=1)
 
         tk.Button(
             sp, text="⌦", width=4,
-            bg=BG2, fg=CYAN,
+            bg=e.bg2, fg=e.cyan,
             font=F_SMALL, relief="flat", bd=0,
             command=lambda: self._type("⌦")
         ).pack(side="left", padx=1)
 
         tk.Button(
             sp, text="Limpiar", width=8,
-            bg=BG2, fg=MUTED,
+            bg=e.bg2, fg=e.muted,
             font=F_SMALL, relief="flat", bd=0,
             command=lambda: self._entry.delete("1.0", "end")
         ).pack(side="left", padx=1)
@@ -182,45 +180,49 @@ class VirtualKeyboard(tk.Frame):
 # NUMPAD
 # =========================================
 class Numpad(tk.Frame):
-    def __init__(self, parent, entry, modifiers: ModifierState, **kwargs):
-        super().__init__(parent, bg=BG, **kwargs)
+    def __init__(self, parent, entry, modifiers: ModifierState, estilo, **kwargs):
+        super().__init__(parent, bg=estilo.bg, **kwargs)
         self._entry = entry
         self._modifiers = modifiers
+        self._estilo = estilo
         self._build()
 
     def _build(self):
-        rf1 = tk.Frame(self, bg=BG)
+        e = self._estilo
+
+        rf1 = tk.Frame(self, bg=e.bg)
         rf1.pack()
+
         for ch in "1234567890":
             tk.Button(
                 rf1, text=ch, width=2,
-                bg=BG2, fg=WHITE,
+                bg=e.bg2, fg=e.white,
                 font=F_NORMAL, relief="flat", bd=0,
-                activebackground=BORDER,
-                activeforeground=CYAN,
+                activebackground=e.border,
+                activeforeground=e.cyan,
                 command=lambda c=ch: self._type(c)
             ).pack(side="left", padx=1, pady=2)
 
-        rf2 = tk.Frame(self, bg=BG)
+        rf2 = tk.Frame(self, bg=e.bg)
         rf2.pack(pady=(2, 0))
 
         for ch, fg, w, cmd in [
-            (".", WHITE, 2, lambda: self._type(".")),
-            ("/", WHITE, 2, lambda: self._type("/")),
-            ("⏎", CYAN, 2, lambda: self._type("⏎")),
-            ("⌫", ORANGE, 2, self._backspace),
-            ("⌦", CYAN, 2, lambda: self._type("⌦")),
-            ("Limpiar", MUTED, 6, lambda: self._entry.delete("1.0", "end")),
-            ("⬅", CYAN, 3, lambda: self._type("←")),
-            ("➡", CYAN, 3, lambda: self._type("→")),
-            ("⬆", CYAN, 3, lambda: self._type("↑")),
-            ("⬇", CYAN, 3, lambda: self._type("↓")),
+            (".", e.white, 2, lambda: self._type(".")),
+            ("/", e.white, 2, lambda: self._type("/")),
+            ("⏎", e.cyan, 2, lambda: self._type("⏎")),
+            ("⌫", e.orange, 2, self._backspace),
+            ("⌦", e.cyan, 2, lambda: self._type("⌦")),
+            ("Limpiar", e.muted, 6, lambda: self._entry.delete("1.0", "end")),
+            ("⬅", e.cyan, 3, lambda: self._type("←")),
+            ("➡", e.cyan, 3, lambda: self._type("→")),
+            ("⬆", e.cyan, 3, lambda: self._type("↑")),
+            ("⬇", e.cyan, 3, lambda: self._type("↓")),
         ]:
             tk.Button(
                 rf2, text=ch, width=w,
-                bg=BG2, fg=fg,
+                bg=e.bg2, fg=fg,
                 font=F_SMALL, relief="flat", bd=0,
-                activebackground=BORDER,
+                activebackground=e.border,
                 command=cmd
             ).pack(side="left", padx=2)
 
@@ -245,60 +247,64 @@ class CharKeyboard(tk.Frame):
         list(".,:;\"'¿?"),
     ]
 
-    def __init__(self, parent, entry, modifiers: ModifierState, **kwargs):
-        super().__init__(parent, bg=BG, **kwargs)
+    def __init__(self, parent, entry, modifiers: ModifierState, estilo, **kwargs):
+        super().__init__(parent, bg=estilo.bg, **kwargs)
         self._entry = entry
         self._modifiers = modifiers
+        self._estilo = estilo
         self._build()
 
     def _build(self):
+        e = self._estilo
+
         for row in self.KEYS:
-            rf = tk.Frame(self, bg=BG)
+            rf = tk.Frame(self, bg=e.bg)
             rf.pack()
+
             for ch in row:
                 tk.Button(
                     rf, text=ch, width=3,
-                    bg=BG2, fg=WHITE,
+                    bg=e.bg2, fg=e.white,
                     font=F_SMALL, relief="flat", bd=0,
-                    activebackground=BORDER,
-                    activeforeground=CYAN,
+                    activebackground=e.border,
+                    activeforeground=e.cyan,
                     command=lambda c=ch: self._type(c)
                 ).pack(side="left", padx=1, pady=1)
 
-        sp = tk.Frame(self, bg=BG)
+        sp = tk.Frame(self, bg=e.bg)
         sp.pack(pady=(2, 0))
 
         tk.Button(
             sp, text="espacio", width=8,
-            bg=BG2, fg=WHITE,
+            bg=e.bg2, fg=e.white,
             font=F_SMALL, relief="flat", bd=0,
             command=lambda: self._type(" ")
         ).pack(side="left", padx=1)
 
         tk.Button(
             sp, text="⏎", width=4,
-            bg=BG2, fg=CYAN,
+            bg=e.bg2, fg=e.cyan,
             font=F_SMALL, relief="flat", bd=0,
             command=lambda: self._type("⏎")
         ).pack(side="left", padx=1)
 
         tk.Button(
             sp, text="⌫", width=4,
-            bg=BG2, fg=ORANGE,
+            bg=e.bg2, fg=e.orange,
             font=F_SMALL, relief="flat", bd=0,
             command=self._backspace
         ).pack(side="left", padx=1)
 
         tk.Button(
             sp, text="⌦", width=4,
-            bg=BG2, fg=CYAN,
+            bg=e.bg2, fg=e.cyan,
             font=F_SMALL, relief="flat", bd=0,
             command=lambda: self._type("⌦")
         ).pack(side="left", padx=1)
 
         tk.Button(
             sp, text="Limpiar", width=8,
-            bg=BG2, fg=MUTED,
+            bg=e.bg2, fg=e.muted,
             font=F_SMALL, relief="flat", bd=0,
             command=lambda: self._entry.delete("1.0", "end")
         ).pack(side="left", padx=1)
@@ -322,114 +328,119 @@ class FnKeyboard(tk.Frame):
         ["F7", "F8", "F9", "F10", "F11", "F12"],
     ]
 
-    def __init__(self, parent, entry, modifiers: ModifierState, controller=None, **kwargs):
-        super().__init__(parent, bg=BG, **kwargs)
+    def __init__(self, parent, entry, modifiers: ModifierState, estilo, controller=None, **kwargs):
+        super().__init__(parent, bg=estilo.bg, **kwargs)
         self._entry = entry
         self._modifiers = modifiers
         self._controller = controller
+        self._estilo = estilo
+        self._mod_colors = get_mod_colors(estilo)
         self._build()
 
     def _build(self):
+        e = self._estilo
+
         for row in self.KEYS:
-            rf = tk.Frame(self, bg=BG)
+            rf = tk.Frame(self, bg=e.bg)
             rf.pack()
+
             for key in row:
                 tk.Button(
-                    rf, text=key,height=1 , width=3,
-                    bg=BG2, fg=ORANGE,
+                    rf, text=key, height=1, width=3,
+                    bg=e.bg2, fg=e.orange,
                     font=F_NORMAL, relief="flat", bd=0,
-                    activebackground=BORDER,
-                    activeforeground=CYAN,
+                    activebackground=e.border,
+                    activeforeground=e.cyan,
                     command=lambda k=key: self._type_fn(k)
-                ).pack(side="left", padx=2, pady=2)
+                ).pack(side="left", padx=2, pady=1)
 
-        sp = tk.Frame(self, bg=BG)
+        sp = tk.Frame(self, bg=e.bg)
         sp.pack(pady=(4, 0))
 
         for mod in ("Alt", "Ctrl", "Shift"):
-            color = MOD_COLORS[mod]
+            color = self._mod_colors[mod]
             btn = tk.Button(
                 sp, text=mod, width=2,
-                bg=BG2, fg=color,
+                bg=e.bg2, fg=color,
                 font=F_SMALL, relief="flat", bd=0,
-                activebackground=BORDER,
+                activebackground=e.border,
                 command=lambda m=mod: self._modifiers.toggle(m)
             )
             btn.pack(side="left", padx=2)
             self._modifiers.register(mod, btn)
 
         for key, fg in [
-            ("Esc",  CYAN),
-            ("Tab",  WHITE),
-            ("Ins",  WHITE),
-            ("Home", WHITE),
-            ("End",  WHITE),
-            ("PgUp", WHITE),
-            ("PgDn", WHITE),
+            ("Esc", e.cyan),
+            ("Tab", e.white),
+            ("Ins", e.white),
+            ("Home", e.white),
+            ("End", e.white),
+            ("PgUp", e.white),
+            ("PgDn", e.white),
         ]:
             tk.Button(
                 sp, text=key, width=2,
-                bg=BG2, fg=fg,
+                bg=e.bg2, fg=fg,
                 font=F_SMALL, relief="flat", bd=0,
-                activebackground=BORDER,
-                activeforeground=CYAN,
+                activebackground=e.border,
+                activeforeground=e.cyan,
                 command=lambda k=key: self._type(k)
             ).pack(side="left", padx=2)
 
-        sp2 = tk.Frame(self, bg=BG)
+        sp2 = tk.Frame(self, bg=e.bg)
         sp2.pack(pady=(2, 0))
 
         tk.Button(
             sp2, text="⏎", width=3,
-            bg=BG2, fg=CYAN,
+            bg=e.bg2, fg=e.cyan,
             font=F_SMALL, relief="flat", bd=0,
             command=lambda: self._type("⏎")
         ).pack(side="left", padx=1)
 
         tk.Button(
             sp2, text="⌫", width=3,
-            bg=BG2, fg=ORANGE,
+            bg=e.bg2, fg=e.orange,
             font=F_SMALL, relief="flat", bd=0,
             command=self._backspace
         ).pack(side="left", padx=1)
 
         tk.Button(
             sp2, text="⌦", width=3,
-            bg=BG2, fg=CYAN,
+            bg=e.bg2, fg=e.cyan,
             font=F_SMALL, relief="flat", bd=0,
             command=lambda: self._type("⌦")
         ).pack(side="left", padx=1)
 
         tk.Button(
             sp2, text="Limpiar", width=8,
-            bg=BG2, fg=MUTED,
+            bg=e.bg2, fg=e.muted,
             font=F_SMALL, relief="flat", bd=0,
             command=lambda: self._entry.delete("1.0", "end")
         ).pack(side="left", padx=1)
 
-        sp3 = tk.Frame(self, bg=BG)
+        sp3 = tk.Frame(self, bg=e.bg)
         sp3.pack(pady=(2, 0))
 
         for label, hotkey in [("Copiar", "ctrl+c"), ("Cortar", "ctrl+x"), ("Pegar", "ctrl+v")]:
             tk.Button(
                 sp3, text=label, width=5,
-                bg=BG2, fg=GREEN,
+                bg=e.bg2, fg=e.green,
                 font=F_SMALL, relief="flat", bd=0,
-                activebackground=BORDER,
-                activeforeground=CYAN,
+                activebackground=e.border,
+                activeforeground=e.cyan,
                 command=lambda hk=hotkey: self._send_hotkey(hk)
             ).pack(side="left", padx=2)
 
-        sp4 = tk.Frame(self, bg=BG)
+        sp4 = tk.Frame(self, bg=e.bg)
         sp4.pack(pady=(2, 0))
 
-        for ch, sym in [("⬅", "←"), ("➡", "→"), ("⬆", "↑"), ("⬇", "↓")]:
+        for label, sym in [("⬅", "←"), ("➡", "→"), ("⬆", "↑"), ("⬇", "↓")]:
             tk.Button(
-                sp2, text=ch, width=3,
-                bg=BG2, fg=CYAN,
+                sp4, text=label, width=3,
+                bg=e.bg2, fg=e.cyan,
                 font=F_SMALL, relief="flat", bd=0,
-                activebackground=BORDER,
-                activeforeground=CYAN,
+                activebackground=e.border,
+                activeforeground=e.cyan,
                 command=lambda s=sym: self._type(s)
             ).pack(side="left", padx=2)
 
