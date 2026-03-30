@@ -228,38 +228,9 @@ class App:
 
     def _send_text(self):
         text = self.entry.get("1.0", "end-1c")
-
         try:
-            buffer = ""
-            i = 0
-
-            while i < len(text):
-                if text[i].isspace():
-                    buffer += text[i]
-                    i += 1
-                    continue
-
-                if text[i].isalpha():
-                    start = i
-                    while i < len(text) and not text[i].isspace():
-                        i += 1
-                    part = text[start:i]
-
-                    if "+" in part:
-                        if buffer:
-                            self.ctrl.send_text(buffer)
-                            buffer = ""
-                        self.ctrl.send_hotkey(part)
-                    else:
-                        buffer += part
-                else:
-                    buffer += text[i]
-                    i += 1
-
-            if buffer:
-                self.ctrl.send_text(buffer)
-
-        except Exception as e:
+            self.ctrl.send_text(text)
+        except (ValueError, RuntimeError) as e:
             self._show_error(str(e))
 
     # ------------------------------------------------------------------
