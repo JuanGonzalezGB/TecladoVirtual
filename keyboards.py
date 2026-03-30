@@ -145,7 +145,7 @@ class VirtualKeyboard(tk.Frame):
             sp, text="⌦", width=4,
             bg=e.bg2, fg=e.cyan,
             font=F_SMALL, relief="flat", bd=0,
-            command=lambda: self._type("⌦")
+            command=lambda: self._type("⟨⌦⟩")
         ).pack(side="left", padx=1)
 
         tk.Button(
@@ -217,7 +217,7 @@ class Numpad(tk.Frame):
             ("/", e.white, 2, lambda: self._type("/")),
             ("⏎", e.cyan, 2, lambda: self._type("⟨⏎⟩")),
             ("⌫", e.orange, 2, self._backspace),
-            ("⌦", e.cyan, 2, lambda: self._type("⌦")),
+            ("⌦", e.cyan, 2, lambda: self._type("⟨⌦⟩")),
             ("Limpiar", e.muted, 6, lambda: self._entry.delete("1.0", "end")),
             ("⬅", e.cyan, 3, lambda: self._type("←")),
             ("➡", e.cyan, 3, lambda: self._type("→")),
@@ -304,7 +304,7 @@ class CharKeyboard(tk.Frame):
             sp, text="⌦", width=4,
             bg=e.bg2, fg=e.cyan,
             font=F_SMALL, relief="flat", bd=0,
-            command=lambda: self._type("⌦")
+            command=lambda: self._type("⟨⌦⟩")
         ).pack(side="left", padx=1)
 
         tk.Button(
@@ -414,7 +414,7 @@ class FnKeyboard(tk.Frame):
             sp2, text="⌦", width=3,
             bg=e.bg2, fg=e.cyan,
             font=F_SMALL, relief="flat", bd=0,
-            command=lambda: self._type("⌦")
+            command=lambda: self._type("⟨⌦⟩")
         ).pack(side="left", padx=1)
 
         tk.Button(
