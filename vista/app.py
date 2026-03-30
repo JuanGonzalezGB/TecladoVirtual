@@ -22,6 +22,7 @@ class App:
         self.root.title("Virtual Input Sender")
         self.root.configure(bg=self.estilo.bg)
         self.root.geometry("480x280")
+        self.root.attributes("-zoomed", True)
 
         self.mode = 0
         self.ctrl = WindowController()
