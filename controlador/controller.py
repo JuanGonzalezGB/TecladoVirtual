@@ -41,21 +41,20 @@ _MODIFIERS = {
 
 
 def _token_to_xkey(token: str) -> str:
-    """
-    Convierte el contenido de un token ⟨...⟩ al keysym de xdotool.
-    Ejemplos:
-        "F4"        → "F4"
-        "Ins"       → "Insert"
-        "Alt+F4"    → "alt+F4"
-        "Ctrl+c"    → "ctrl+c"
-        "Ctrl+Shift+F5" → "ctrl+shift+F5"
-    """
-    parts = token.split("+")
-    mods  = [_MODIFIERS[p] for p in parts[:-1] if p in _MODIFIERS]
-    key   = parts[-1]
-    xkey  = _SPECIAL_KEYS.get(key, key)   # si no está en el mapa, lo usa literal
-    return "+".join(mods + [xkey]) if mods else xkey
+    token = token.replace("KEY:", "")
+    token = token.replace("MOD:", "")
 
+    parts = token.split("+")
+
+    mods = [_MODIFIERS[p] for p in parts[:-1] if p in _MODIFIERS]
+    key = parts[-1]
+
+    xkey = _SPECIAL_KEYS.get(key, key)
+
+    # 🔥 FIX CRÍTICO: xdotool necesita formato limpio
+    if mods:
+        return "+".join(mods + [xkey])
+    return xkey
 
 class WindowController:
     """
@@ -89,14 +88,26 @@ class WindowController:
         self.target_window = win_id
         self.target_name = name
         return win_id, name
-
     def send_hotkey(self, key: str) -> None:
         """Envía una combinación de teclas directamente (sin pasar por el buffer)."""
         if not self.target_window:
             raise ValueError("No hay ventana destino seleccionada.")
+
         try:
-            subprocess.run(["xdotool", "windowactivate", self.target_window], check=True)
+            subprocess.run(
+                ["xdotool", "windowactivate", self.target_window],
+                check=True
+            )
+
+            # 🔴 FIX: normalizar formato KEY:Ins → Insert
+            if key.startswith("KEY:"):
+                key = key[4:]
+
+            # si viene ya limpio, igual normaliza
+            key = _token_to_xkey(key)
+
             subprocess.run(["xdotool", "key", key], check=True)
+
         except subprocess.CalledProcessError as e:
             raise RuntimeError(f"Error al enviar hotkey: {e}")
 
@@ -123,44 +134,40 @@ class WindowController:
             raise RuntimeError(f"Error al enviar texto: {e}")
 
     def _dispatch(self, text: str) -> None:
-        """
-        Divide el texto en segmentos: texto plano y tokens ⟨...⟩.
-        Los tokens se ejecutan como xdotool key; el texto plano se tipea.
-        """
         last = 0
         for m in _FN_PATTERN.finditer(text):
-            # texto plano antes del token
             plain = text[last:m.start()]
             self._dispatch_plain(plain)
 
-            # token → tecla
-            xkey = _token_to_xkey(m.group(1))
-            subprocess.run(["xdotool", "key", xkey])
+            token = m.group(1)
+
+            xkey = _token_to_xkey(token)
+
+            # 🔥 FIX REAL: separar mods correctamente
+            if "+" in xkey:
+                parts = xkey.split("+")
+                mods, key = parts[:-1], parts[-1]
+
+                try:
+                    for mod in mods:
+                        subprocess.run(["xdotool", "keydown", mod])
+
+                    subprocess.run(["xdotool", "key", key])
+
+                finally:
+                    for mod in reversed(mods):
+                        subprocess.run(["xdotool", "keyup", mod])
+            else:
+                subprocess.run(["xdotool", "key", xkey])
 
             last = m.end()
 
-        # resto de texto plano tras el último token
         self._dispatch_plain(text[last:])
 
     def _dispatch_plain(self, text: str) -> None:
-        """Envía texto plano respetando los caracteres especiales ya conocidos."""
-        buffer = ""
-        i = 0
-        while i < len(text):
-            matched = None
-            for key in sorted(_SPECIAL_KEYS, key=len, reverse=True):
-                if text[i:].startswith(key):
-                    matched = key
-                    break
-            if matched:
-                self._flush_buffer(buffer)
-                buffer = ""
-                subprocess.run(["xdotool", "key", _SPECIAL_KEYS[matched]])
-                i += len(matched)
-            else:
-                buffer += text[i]
-                i += 1
-        self._flush_buffer(buffer)
+        if not text:
+            return
+        subprocess.run(["xdotool", "type", "--delay", "5", text])
 
     @staticmethod
     def _flush_buffer(buffer: str) -> None:

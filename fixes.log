@@ -1,0 +1,49 @@
+ISSUE — MODIFICADORES PEGADOS (Alt/Ctrl/Shift)
+Problema
+
+El sistema de teclado virtual enviaba combinaciones como Alt+F4 usando xdotool, pero los modificadores (especialmente Alt) quedaban en estado “presionado” después de su uso.
+
+Esto provocaba que:
+
+Alt se quedara activo permanentemente
+Teclas posteriores se interpretaran como combinaciones con Alt
+Comandos como F4 se repitieran como Alt+F4 aunque no se estuviera presionando Alt
+El sistema entrara en un estado inconsistente de teclado “pegado”
+Causa raíz
+
+El flujo original era:
+
+keydown mod
+key event
+keyup mod
+
+Pero si ocurría cualquier interrupción, error o salida inesperada en el proceso, el keyup no se ejecutaba.
+
+Resultado: el estado del modificador nunca se liberaba en xdotool/X11.
+
+SOLUCIÓN APLICADA
+
+Se reemplazó el manejo de modificadores dentro de _dispatch usando un bloque seguro con try/finally.
+
+Cambio clave:
+
+Antes:
+
+keydown mods
+key press
+keyup mods (no garantizado)
+
+Después:
+
+keydown mods
+key press
+finally → keyup mods (siempre se ejecuta)
+Resultado del fix
+Alt ya no queda pegado
+Ctrl y Shift funcionan correctamente
+Se eliminan estados inconsistentes en xdotool
+El sistema se vuelve robusto ante errores o interrupciones
+CONCLUSIÓN
+
+El problema no era la lógica de teclas, sino la falta de garantía de liberación de modificadores.
+La solución fue asegurar cleanup con finally, evitando estados persistentes en el sistema de entrada.

@@ -9,7 +9,7 @@ F_SMALL  = ("monospace", 8)
 
 # Delimitadores para teclas especiales en el buffer de texto
 # ⟨⟩ son corchetes angulares Unicode (U+27E8/U+27E9), rarísimos en texto normal
-FN_OPEN  = "⟨"
+FN_OPEN  = "⟨KEY:"
 FN_CLOSE = "⟩"
 
 def fn_token(key: str) -> str:
@@ -157,9 +157,10 @@ class VirtualKeyboard(tk.Frame):
 
     def _type(self, ch: str):
         mod = self._modifiers.consume()
+
         if mod:
-            # combinación con letra normal → token
-            self._entry.insert("insert", fn_token(f"{mod}+{ch}"))
+            self._entry.insert("insert", fn_token(f"MOD:{mod}+{ch}"))
+            self._modifiers.reset()  # 🔥 FIX: evita estado colgado
         else:
             ch = ch.upper() if self._uppercase else ch
             self._entry.insert("insert", ch)
@@ -459,17 +460,17 @@ class FnKeyboard(tk.Frame):
                 print(f"Error hotkey: {e}")
 
     def _type_fn(self, key: str):
-        """F1-F12: con modificador → token ⟨Alt+F4⟩, sin modificador → token ⟨F4⟩"""
         mod = self._modifiers.consume()
-        token = fn_token(f"{mod}+{key}" if mod else key)
+        token = fn_token(f"MOD:{mod}+{key}" if mod else key)
         self._entry.insert("insert", token)
+        self._modifiers.reset()  # 🔥 FIX
 
     def _type_nav(self, key: str):
-        """Esc, Tab, Ins, Home… con o sin modificador → siempre token ⟨key⟩"""
         mod = self._modifiers.consume()
-        token = fn_token(f"{mod}+{key}" if mod else key)
+        token = fn_token(f"MOD:{mod}+{key}" if mod else key)
         self._entry.insert("insert", token)
-
+        self._modifiers.reset()  # 🔥 FIX
+        
     def _type(self, key: str):
         """Flechas y utilidades — inserción literal (el controller ya las conoce)."""
         self._entry.insert("insert", key)
@@ -479,3 +480,33 @@ class FnKeyboard(tk.Frame):
             self._entry.delete("insert-1c", "insert")
         except:
             pass
+        
+def parse_token(text: str):
+    """
+    Convierte tokens en acciones reales.
+
+    ⟨KEY:Ins⟩ → ("Ins", False)
+    ⟨KEY:Ctrl+Alt+Del⟩ → ("Del", ["Ctrl","Alt"])
+    """
+
+    if not (text.startswith(FN_OPEN) and text.endswith(FN_CLOSE)):
+        return None  # texto plano
+
+    inner = text[len(FN_OPEN):-len(FN_CLOSE)]
+
+    if not inner.startswith("KEY:"):
+        return None
+
+    payload = inner[4:]  # remove KEY:
+
+    if payload.startswith("MOD:"):
+        payload = payload[4:]
+
+    parts = payload.split("+")
+    if len(parts) == 1:
+        return {"mod": None, "key": parts[0]}
+
+    return {
+        "mod": parts[:-1],
+        "key": parts[-1]
+    }
