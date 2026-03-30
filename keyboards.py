@@ -131,7 +131,7 @@ class VirtualKeyboard(tk.Frame):
             sp, text="⏎", width=4,
             bg=e.bg2, fg=e.cyan,
             font=F_SMALL, relief="flat", bd=0,
-            command=lambda: self._type("⏎")
+            command=lambda: self._type("⟨⏎⟩")
         ).pack(side="left", padx=1)
 
         tk.Button(
@@ -215,7 +215,7 @@ class Numpad(tk.Frame):
         for ch, fg, w, cmd in [
             (".", e.white, 2, lambda: self._type(".")),
             ("/", e.white, 2, lambda: self._type("/")),
-            ("⏎", e.cyan, 2, lambda: self._type("⏎")),
+            ("⏎", e.cyan, 2, lambda: self._type("⟨⏎⟩")),
             ("⌫", e.orange, 2, self._backspace),
             ("⌦", e.cyan, 2, lambda: self._type("⌦")),
             ("Limpiar", e.muted, 6, lambda: self._entry.delete("1.0", "end")),
@@ -290,7 +290,7 @@ class CharKeyboard(tk.Frame):
             sp, text="⏎", width=4,
             bg=e.bg2, fg=e.cyan,
             font=F_SMALL, relief="flat", bd=0,
-            command=lambda: self._type("⏎")
+            command=lambda: self._type("⟨⏎⟩")
         ).pack(side="left", padx=1)
 
         tk.Button(
@@ -400,7 +400,7 @@ class FnKeyboard(tk.Frame):
             sp2, text="⏎", width=3,
             bg=e.bg2, fg=e.cyan,
             font=F_SMALL, relief="flat", bd=0,
-            command=lambda: self._type("⏎")
+            command=lambda: self._type("⟨⏎⟩")
         ).pack(side="left", padx=1)
 
         tk.Button(
@@ -470,7 +470,7 @@ class FnKeyboard(tk.Frame):
         token = fn_token(f"MOD:{mod}+{key}" if mod else key)
         self._entry.insert("insert", token)
         self._modifiers.reset()  # 🔥 FIX
-        
+
     def _type(self, key: str):
         """Flechas y utilidades — inserción literal (el controller ya las conoce)."""
         self._entry.insert("insert", key)
