@@ -7,6 +7,15 @@ import tkinter as tk
 F_NORMAL = ("monospace", 9)
 F_SMALL  = ("monospace", 8)
 
+# Delimitadores para teclas especiales en el buffer de texto
+# ⟨⟩ son corchetes angulares Unicode (U+27E8/U+27E9), rarísimos en texto normal
+FN_OPEN  = "⟨"
+FN_CLOSE = "⟩"
+
+def fn_token(key: str) -> str:
+    """Envuelve una tecla especial en su token: Ins → ⟨Ins⟩, Alt+F4 → ⟨Alt+F4⟩"""
+    return f"{FN_OPEN}{key}{FN_CLOSE}"
+
 
 def get_mod_colors(estilo):
     return {
@@ -18,7 +27,6 @@ def get_mod_colors(estilo):
 
 # =========================================
 # MODIFIER STATE
-# (sin cambios lógicos, solo UI externa)
 # =========================================
 class ModifierState:
     def __init__(self):
@@ -58,13 +66,10 @@ class ModifierState:
             try:
                 if not btn.winfo_exists():
                     continue
-
                 active = mod in self._active
-
                 btn.config(
                     bg=btn.cget("activebackground") if active else btn.cget("bg"),
                 )
-
             except tk.TclError:
                 pass
 
@@ -94,7 +99,6 @@ class VirtualKeyboard(tk.Frame):
         for row in self.KEYS:
             rf = tk.Frame(self, bg=e.bg)
             rf.pack()
-
             for ch in row:
                 tk.Button(
                     rf, text=ch, width=3,
@@ -154,7 +158,8 @@ class VirtualKeyboard(tk.Frame):
     def _type(self, ch: str):
         mod = self._modifiers.consume()
         if mod:
-            self._entry.insert("insert", f"{mod}+{ch}")
+            # combinación con letra normal → token
+            self._entry.insert("insert", fn_token(f"{mod}+{ch}"))
         else:
             ch = ch.upper() if self._uppercase else ch
             self._entry.insert("insert", ch)
@@ -260,7 +265,6 @@ class CharKeyboard(tk.Frame):
         for row in self.KEYS:
             rf = tk.Frame(self, bg=e.bg)
             rf.pack()
-
             for ch in row:
                 tk.Button(
                     rf, text=ch, width=3,
@@ -343,7 +347,6 @@ class FnKeyboard(tk.Frame):
         for row in self.KEYS:
             rf = tk.Frame(self, bg=e.bg)
             rf.pack()
-
             for key in row:
                 tk.Button(
                     rf, text=key, height=1, width=3,
@@ -354,6 +357,7 @@ class FnKeyboard(tk.Frame):
                     command=lambda k=key: self._type_fn(k)
                 ).pack(side="left", padx=2, pady=1)
 
+        # Fila 1: modificadores + navegación
         sp = tk.Frame(self, bg=e.bg)
         sp.pack(pady=(4, 0))
 
@@ -370,11 +374,11 @@ class FnKeyboard(tk.Frame):
             self._modifiers.register(mod, btn)
 
         for key, fg in [
-            ("Esc", e.cyan),
-            ("Tab", e.white),
-            ("Ins", e.white),
+            ("Esc",  e.cyan),
+            ("Tab",  e.white),
+            ("Ins",  e.white),
             ("Home", e.white),
-            ("End", e.white),
+            ("End",  e.white),
             ("PgUp", e.white),
             ("PgDn", e.white),
         ]:
@@ -384,9 +388,10 @@ class FnKeyboard(tk.Frame):
                 font=F_SMALL, relief="flat", bd=0,
                 activebackground=e.border,
                 activeforeground=e.cyan,
-                command=lambda k=key: self._type(k)
+                command=lambda k=key: self._type_nav(k)   # ← usa _type_nav
             ).pack(side="left", padx=2)
 
+        # Fila 2: utilidades
         sp2 = tk.Frame(self, bg=e.bg)
         sp2.pack(pady=(2, 0))
 
@@ -418,6 +423,7 @@ class FnKeyboard(tk.Frame):
             command=lambda: self._entry.delete("1.0", "end")
         ).pack(side="left", padx=1)
 
+        # Fila 3: portapapeles
         sp3 = tk.Frame(self, bg=e.bg)
         sp3.pack(pady=(2, 0))
 
@@ -431,6 +437,7 @@ class FnKeyboard(tk.Frame):
                 command=lambda hk=hotkey: self._send_hotkey(hk)
             ).pack(side="left", padx=2)
 
+        # Fila 4: flechas
         sp4 = tk.Frame(self, bg=e.bg)
         sp4.pack(pady=(2, 0))
 
@@ -452,13 +459,19 @@ class FnKeyboard(tk.Frame):
                 print(f"Error hotkey: {e}")
 
     def _type_fn(self, key: str):
+        """F1-F12: con modificador → token ⟨Alt+F4⟩, sin modificador → token ⟨F4⟩"""
         mod = self._modifiers.consume()
-        if mod:
-            self._entry.insert("insert", f"{mod}+{key}")
-        else:
-            self._entry.insert("insert", key)
+        token = fn_token(f"{mod}+{key}" if mod else key)
+        self._entry.insert("insert", token)
+
+    def _type_nav(self, key: str):
+        """Esc, Tab, Ins, Home… con o sin modificador → siempre token ⟨key⟩"""
+        mod = self._modifiers.consume()
+        token = fn_token(f"{mod}+{key}" if mod else key)
+        self._entry.insert("insert", token)
 
     def _type(self, key: str):
+        """Flechas y utilidades — inserción literal (el controller ya las conoce)."""
         self._entry.insert("insert", key)
 
     def _backspace(self):

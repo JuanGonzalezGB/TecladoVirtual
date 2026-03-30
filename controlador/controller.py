@@ -2,10 +2,15 @@
 controller.py — lógica de negocio separada del GUI
 Maneja todo lo relacionado con xdotool y la ventana destino.
 """
+import re
 import subprocess
 
 
-# Caracteres especiales que se traducen a teclas xdotool
+# Delimitadores de tokens de teclas especiales (deben coincidir con keyboards.py)
+# ⟨⟩ son corchetes angulares Unicode (U+27E8/U+27E9), rarísimos en texto normal
+_FN_PATTERN = re.compile(r"⟨([^⟩]+)⟩")
+
+# Teclas simples → keysym xdotool
 _SPECIAL_KEYS = {
     "⏎":   "Return",
     "←":   "Left",
@@ -18,22 +23,38 @@ _SPECIAL_KEYS = {
     "F5":  "F5",  "F6":  "F6",  "F7":  "F7",  "F8":  "F8",
     "F9":  "F9",  "F10": "F10", "F11": "F11", "F12": "F12",
     # Teclas extra
-    "Esc":  "Escape",
-    "Tab":  "Tab",
-    "Alt":  "alt",
-    "Ins":  "Insert",
-    "Home": "Home",
-    "End":  "End",
-    "PgUp": "Prior",
-    "PgDn": "Next",
+    "Esc":   "Escape",
+    "Tab":   "Tab",
+    "Ins":   "Insert",
+    "Home":  "Home",
+    "End":   "End",
+    "PgUp":  "Prior",
+    "PgDn":  "Next",
 }
 
-# Modificadores que se combinan con otras teclas
+# Modificadores → keysym xdotool
 _MODIFIERS = {
     "Alt":   "alt",
     "Ctrl":  "ctrl",
     "Shift": "shift",
 }
+
+
+def _token_to_xkey(token: str) -> str:
+    """
+    Convierte el contenido de un token ⟨...⟩ al keysym de xdotool.
+    Ejemplos:
+        "F4"        → "F4"
+        "Ins"       → "Insert"
+        "Alt+F4"    → "alt+F4"
+        "Ctrl+c"    → "ctrl+c"
+        "Ctrl+Shift+F5" → "ctrl+shift+F5"
+    """
+    parts = token.split("+")
+    mods  = [_MODIFIERS[p] for p in parts[:-1] if p in _MODIFIERS]
+    key   = parts[-1]
+    xkey  = _SPECIAL_KEYS.get(key, key)   # si no está en el mapa, lo usa literal
+    return "+".join(mods + [xkey]) if mods else xkey
 
 
 class WindowController:
@@ -51,11 +72,6 @@ class WindowController:
     # ------------------------------------------------------------------
 
     def capture_focused_window(self) -> tuple[str, str]:
-        """
-        Captura la ventana que tenga el foco en ese momento.
-        Devuelve (window_id, window_name).
-        Lanza RuntimeError si xdotool falla.
-        """
         try:
             win_id = subprocess.check_output(
                 ["xdotool", "getwindowfocus"]
@@ -75,11 +91,7 @@ class WindowController:
         return win_id, name
 
     def send_hotkey(self, key: str) -> None:
-        """
-        Envía una combinación de teclas directamente a la ventana destino.
-        Ejemplo: key="ctrl+c"
-        Lanza ValueError si no hay ventana seleccionada.
-        """
+        """Envía una combinación de teclas directamente (sin pasar por el buffer)."""
         if not self.target_window:
             raise ValueError("No hay ventana destino seleccionada.")
         try:
@@ -97,18 +109,10 @@ class WindowController:
     # ------------------------------------------------------------------
 
     def send_text(self, text: str) -> None:
-        """
-        Envía `text` a la ventana destino.
-        Los caracteres especiales (⏎ ← → ↑ ↓ ⌦) se convierten en teclas.
-        Lanza ValueError si no hay ventana seleccionada.
-        Lanza RuntimeError si xdotool falla.
-        """
         if not self.target_window:
             raise ValueError("No hay ventana destino seleccionada.")
-
         if not text:
             return
-
         try:
             subprocess.run(
                 ["xdotool", "windowactivate", self.target_window],
@@ -119,28 +123,35 @@ class WindowController:
             raise RuntimeError(f"Error al enviar texto: {e}")
 
     def _dispatch(self, text: str) -> None:
-        """Recorre el texto y manda cada carácter o tecla especial."""
+        """
+        Divide el texto en segmentos: texto plano y tokens ⟨...⟩.
+        Los tokens se ejecutan como xdotool key; el texto plano se tipea.
+        """
+        last = 0
+        for m in _FN_PATTERN.finditer(text):
+            # texto plano antes del token
+            plain = text[last:m.start()]
+            self._dispatch_plain(plain)
+
+            # token → tecla
+            xkey = _token_to_xkey(m.group(1))
+            subprocess.run(["xdotool", "key", xkey])
+
+            last = m.end()
+
+        # resto de texto plano tras el último token
+        self._dispatch_plain(text[last:])
+
+    def _dispatch_plain(self, text: str) -> None:
+        """Envía texto plano respetando los caracteres especiales ya conocidos."""
         buffer = ""
         i = 0
         while i < len(text):
-            # Combinaciones Alt+Fx  (ej: "Alt+F4")
-            combo = self._match_combo(text, i)
-            if combo:
-                self._flush_buffer(buffer)
-                buffer = ""
-                modifier, key = combo
-                xkey = f"{_MODIFIERS[modifier]}+{_SPECIAL_KEYS.get(key, key)}"
-                subprocess.run(["xdotool", "key", xkey])
-                i += len(modifier) + 1 + len(key)  # "Alt" + "+" + "F4"
-                continue
-
-            # Teclas especiales simples (más largas primero)
             matched = None
             for key in sorted(_SPECIAL_KEYS, key=len, reverse=True):
                 if text[i:].startswith(key):
                     matched = key
                     break
-
             if matched:
                 self._flush_buffer(buffer)
                 buffer = ""
@@ -149,21 +160,7 @@ class WindowController:
             else:
                 buffer += text[i]
                 i += 1
-
         self._flush_buffer(buffer)
-
-    @staticmethod
-    def _match_combo(text: str, i: int):
-        """Detecta patrón Modificador+Tecla en la posición i.
-        Devuelve (modifier, key) o None."""
-        for mod in _MODIFIERS:
-            prefix = mod + "+"
-            if text[i:].startswith(prefix):
-                rest = text[i + len(prefix):]
-                for key in sorted(_SPECIAL_KEYS, key=len, reverse=True):
-                    if rest.startswith(key):
-                        return mod, key
-        return None
 
     @staticmethod
     def _flush_buffer(buffer: str) -> None:

@@ -4,7 +4,7 @@ app.py — GUI con sistema de temas integrado
 import tkinter as tk
 
 from keyboards import VirtualKeyboard, Numpad, CharKeyboard, FnKeyboard, ModifierState
-from controller import WindowController
+from controlador.controller import WindowController
 
 from estilo.estiloFactory import EstiloFactory
 from controlador.controladorTemas import etiquetar
