@@ -102,3 +102,9 @@ El sistema soporta:
 - delete
 - enter
 - envío a otra aplicación
+
+--------------------------------------
+
+Puede instalar con PyInstaller:
+
+   python3 -m PyInstaller --name="VIS Beta" main.py 
