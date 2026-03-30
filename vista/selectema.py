@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: GPL-3.0-only
+# Copyright (C) 2026 Juan S.G. Castellanos
+
 """
 vista/selectema.py — selector de temas con estética tipo dashboard
 """

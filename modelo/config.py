@@ -1,3 +1,4 @@
+
 """
 modelo/config.py — persistencia simple de configuración
 (Solo maneja el tema actual)

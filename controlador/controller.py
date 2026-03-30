@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: GPL-3.0-only
+# Copyright (C) 2026 Juan S.G. Castellanos
 """
 controller.py — lógica de negocio separada del GUI
 Maneja todo lo relacionado con xdotool y la ventana destino.

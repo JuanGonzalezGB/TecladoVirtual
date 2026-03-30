@@ -108,3 +108,7 @@ El sistema soporta:
 Puede instalar con PyInstaller:
 
    python3 -m PyInstaller --name="VIS Beta" main.py 
+
+This project includes code generated with assistance of AI tools and manually reviewed and modified by the author.
+
+Este proyecto incluye código generado con asistencia de herramientas de IA, manualmente revisado y modificado por el autor.

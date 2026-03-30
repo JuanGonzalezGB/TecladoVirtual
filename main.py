@@ -1,4 +1,8 @@
 #!/usr/bin/env python3
+
+# SPDX-License-Identifier: GPL-3.0-only
+# Copyright (C) 2026 Juan S.G. Castellanos
+
 import sys
 import tkinter as tk
 
@@ -20,4 +24,3 @@ def main():
 if __name__ == "__main__":
     main()
 
-    
