@@ -220,7 +220,7 @@ class Numpad(tk.Frame):
         ]:
             tk.Button(
                 rf2, text=ch, width=w,
-                bg=e.bg2, fg=fg,
+                bg=e.bg2, fg=e.red,
                 font=F_SMALL, relief="flat", bd=0,
                 activebackground=e.border,
                 command=cmd
@@ -437,7 +437,7 @@ class FnKeyboard(tk.Frame):
         for label, sym in [("⬅", "←"), ("➡", "→"), ("⬆", "↑"), ("⬇", "↓")]:
             tk.Button(
                 sp4, text=label, width=3,
-                bg=e.bg2, fg=e.cyan,
+                bg=e.bg2, fg=e.red,
                 font=F_SMALL, relief="flat", bd=0,
                 activebackground=e.border,
                 activeforeground=e.cyan,
