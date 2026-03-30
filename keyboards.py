@@ -12,7 +12,7 @@ def get_mod_colors(estilo):
     return {
         "Alt": estilo.cyan,
         "Ctrl": estilo.orange,
-        "Shift": estilo.green,
+        "Shift": estilo.blue,
     }
 
 
@@ -424,7 +424,7 @@ class FnKeyboard(tk.Frame):
         for label, hotkey in [("Copiar", "ctrl+c"), ("Cortar", "ctrl+x"), ("Pegar", "ctrl+v")]:
             tk.Button(
                 sp3, text=label, width=5,
-                bg=e.bg2, fg=e.green,
+                bg=e.bg2, fg=e.blue,
                 font=F_SMALL, relief="flat", bd=0,
                 activebackground=e.border,
                 activeforeground=e.cyan,
