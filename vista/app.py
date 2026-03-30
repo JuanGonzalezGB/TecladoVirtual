@@ -22,14 +22,20 @@ class App:
         self.root.title("Virtual Input Sender")
         self.root.configure(bg=self.estilo.bg)
         self.root.geometry("480x280")
-        self.root.attributes("-zoomed", True)
+        
 
         self.mode = 0
         self.ctrl = WindowController()
         self.modifiers = ModifierState()
 
         self._build()
-
+        self.root.after(200, self._fix_window_position)
+    def _fix_window_position(self):
+        self.root.update_idletasks()
+        self.root.lift()
+        self.root.focus_force()
+        self.root.attributes("-topmost", True)
+        self.root.after(300, lambda: self.root.attributes("-topmost", False))        
     # ------------------------------------------------------------------
     # GUI
     # ------------------------------------------------------------------
